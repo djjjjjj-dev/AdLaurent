@@ -1,0 +1,80 @@
+/* YouTube Ad-Blocking Stylesheet - AdShield Pro */
+
+/* Player Ad Overlays & Ads Container */
+.video-ads,
+.ytp-ad-module,
+.ytp-ad-overlay-container,
+.ytp-ad-message-container,
+.ytp-ad-action-interstitial,
+.ytp-ad-progress-list,
+.ytp-ad-preview-container,
+.ytp-ad-text,
+.ytp-ad-overlay-slot {
+  display: none !important;
+}
+
+/* Home & Feed Grid Ads - Collapse entire grid cards to eliminate black squares */
+ytd-rich-item-renderer:has(ytd-ad-slot-renderer),
+ytd-rich-item-renderer:has(ytd-in-feed-ad-layout-renderer),
+ytd-rich-item-renderer:has(.ytd-ad-slot-renderer),
+ytd-rich-item-renderer:has([id*="ad-slot"]),
+ytd-rich-item-renderer:has(ad-slot-renderer),
+ytd-rich-item-renderer:has(.sparkles-light-cta),
+ytd-rich-section-renderer:has(ytd-statement-banner-renderer),
+ytd-rich-section-renderer:has(ytd-banner-promo-renderer),
+ytd-rich-section-renderer:has(ytd-brand-video-singleton-renderer),
+ytd-rich-section-renderer:has(#masthead-ad),
+ytd-rich-section-renderer:has([class*="ad-slot"]),
+ytd-rich-section-renderer:has(ytd-ad-slot-renderer),
+ytd-rich-grid-row:has(ytd-ad-slot-renderer) {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  max-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Individual Ad Renderers */
+ytd-ad-slot-renderer,
+ytd-in-feed-ad-layout-renderer,
+ytd-banner-promo-renderer,
+ytd-statement-banner-renderer,
+ytd-promoted-video-renderer,
+ytd-display-ad-renderer,
+ytd-video-masthead-ad-v3-renderer,
+ytd-primetime-promo-renderer,
+#masthead-ad,
+#player-ads,
+#panels ytd-ad-slot-renderer,
+#related ytd-ad-slot-renderer,
+#secondary ytd-ad-slot-renderer,
+ytd-promoted-sparkles-web-renderer,
+ytd-compact-promoted-video-renderer,
+.sparkles-light-cta {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* YouTube Anti-Adblock Warning Popups & Dialogs */
+ytd-enforcement-message-view-model,
+ytd-popup-container:has(ytd-enforcement-message-view-model),
+tp-yt-paper-dialog:has(#feedback.ytd-enforcement-message-view-model),
+tp-yt-iron-overlay-backdrop {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Prevent scrolling lock */
+body.ytd-app, html {
+  overflow: auto !important;
+}

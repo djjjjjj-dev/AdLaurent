@@ -1,0 +1,57 @@
+/* Twitch Ad-Blocking & Cleaner Stylesheet */
+
+/* Chat ad banners, sponsored disclosure cards, community highlights (Apple TV drop, etc.) */
+.community-highlight,
+[class*="community-highlight"],
+.community-highlight-wrapper,
+[data-test-selector*="community-highlight"],
+.disclosure-card,
+.stream-display-ad__wrapper,
+.stream-display-ad__container,
+.chat-banner,
+[data-a-target="chat-ad"],
+[data-test-selector="chat-ad"],
+[data-test-selector*="ad-banner"],
+[data-test-selector="drops-claim-banner"],
+.channel-page-carousel-ad,
+.whisper-thread--ad,
+.top-nav__ad-container,
+.tw-ad-slot,
+.ad-slot,
+[aria-label="Annonce"],
+[aria-label="Advertisement"],
+.stream-chat [class*="chat-ad"],
+.stream-chat [class*="ChatAd"],
+.stream-chat [class*="disclosure"],
+div:has(> a[href*="apple.com"]),
+div:has(> div > a[href*="apple.com"]) {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  width: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Twitch Stream In-Player Ad Overlays, Slate Badges & Labels */
+.video-player__ad-overlay,
+.player-ad-overlay,
+[data-a-target="video-ad-label"],
+[data-a-target="video-ad-countdown"],
+[data-test-selector="ad-banner-default-text"],
+div[data-a-target="player-overlay-click-handler"]:has([data-a-target="video-ad-label"]),
+.video-player__overlay:has([data-a-target="video-ad-label"]),
+div:has(> a[aria-label*="Publicité"]),
+div:has(> button[aria-label*="Publicité"]),
+div:has(> a[aria-label*="Ad"]),
+button[aria-label*="En savoir plus"],
+a[aria-label*="En savoir plus"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  pointer-events: none !important;
+}

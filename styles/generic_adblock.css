@@ -1,0 +1,190 @@
+/* AdShield Pro - Universal Ad-Block Engine (CSS Filters) */
+
+/* Google AdSense, DoubleClick & Google Publisher Tag (DFP/GAM) */
+.adsbygoogle,
+ins.adsbygoogle,
+[id^="google_ads_"],
+[id*="google_ads_iframe"],
+[id^="div-gpt-ad"],
+[id*="-gpt-ad-"],
+[id*="gpt-ad"],
+div[id*="google_ads"],
+[class*="dfp"],
+[id*="dfp"],
+.dfp-slot,
+.dfp__slot,
+.dfp__container,
+[data-format*="banniere"],
+[data-format*="habillage"],
+[data-format*="pave"],
+[data-slot-name],
+
+/* French Press & European Ad Containers (Le Monde, Le Figaro, BFM, etc.) */
+[class*="ds-ad-slot"],
+[class*="ds-home__pub"],
+[class*="adm-ad"],
+.suspended-banner,
+.lmd-banners,
+[id*="habillage"],
+[class*="habillage"],
+[id*="banniere"],
+[class*="banniere"],
+[id*="pave_"],
+[class*="pave_"],
+[class*="pave-"],
+[class*="publicite"],
+[id*="publicite"],
+[class*="pub-"],
+[class*="__pub"],
+[class*="_pub_"],
+[class*="encart-pub"],
+[class*="fig-ad"],
+[id*="fig-ad"],
+[class*="sas_"],
+[id*="sas_"],
+[id^="sas_"],
+[class*="smartad"],
+
+/* Video In-Read & Native Ad Networks (Teads, Criteo, Taboola, Outbrain) */
+[class*="teads"],
+[id*="teads"],
+.taboola-container,
+.taboola-below-article-thumbnails,
+#taboola-below-article-thumbnails,
+.trc_related_container,
+.trc_rbox_container,
+.outbrain-container,
+.outbrain_widget,
+.ob-widget,
+.ob-smartfeed-wrapper,
+.criteo-ad,
+.criteo-placeholder,
+[class*="criteo"],
+[class*="taboola"],
+[class*="outbrain"],
+
+/* Generic Ad Container IDs and Classes */
+.ad-banner,
+.ad-box,
+.ad-container,
+.ad-slot,
+.ad-wrapper,
+.ad-unit,
+.ad-wrap,
+.ad-frame,
+.ad-holder,
+.ad-placeholder,
+.ad-space,
+.ad-leaderboard,
+.ad-rectangle,
+.ad-sky,
+.ad-skyscraper,
+.ad-sidebar,
+.ad-billboard,
+.ad-content,
+.ad-zone,
+.ad-card,
+.ad-placement,
+.ad_banner,
+.ad_slot,
+.ad_container,
+.ad_wrapper,
+.ad_box,
+.ad_sidebar,
+.top-ad,
+.top_ad,
+.bottom-ad,
+.bottom_ad,
+.sidebar-ad,
+.banner-ad,
+.header-ad,
+.footer-ad,
+
+/* Ad Selectors by Data / Aria Attributes */
+[data-ad],
+[data-ad-slot],
+[data-ad-unit],
+[data-ad-client],
+[data-ad-format],
+[data-ad-name],
+[data-ad-id],
+[data-ad-type],
+[data-dfp-id],
+[aria-label="advertisement" i],
+[aria-label="publicité" i],
+[aria-label="annonce" i],
+[aria-label="sponsored" i],
+
+/* Sponsored & Native Ads */
+.sponsored-post,
+.sponsored-content,
+.sponsored-article,
+.sponsored-item,
+.sponsored-feed,
+.sponsored-link,
+.native-ad,
+.native-ads,
+.promotedlink,
+[data-adclicklocation],
+.promoted-tweet,
+.promoted-item,
+.promoted-content,
+[class*="sponsor"],
+
+/* Sticky & Floating Ad Overlays */
+.sticky-ad,
+.sticky-ads,
+.floating-ad,
+.float-ad,
+.bottom-ad-bar,
+.ad-overlay,
+.overlay-ad,
+.interstitial-ad,
+.popup-ad,
+.pop-ad,
+.corner-ad,
+
+/* Generic Ad Iframe Patterns */
+iframe[src*="doubleclick.net"],
+iframe[src*="googlesyndication.com"],
+iframe[src*="googleadservices.com"],
+iframe[src*="amazon-adsystem.com"],
+iframe[src*="adnxs.com"],
+iframe[src*="criteo.com"],
+iframe[src*="criteo.net"],
+iframe[src*="rubiconproject.com"],
+iframe[src*="openx.net"],
+iframe[src*="pubmatic.com"],
+iframe[src*="adroll.com"],
+iframe[src*="media.net"],
+iframe[src*="smartadserver.com"],
+iframe[src*="sascdn.com"],
+iframe[src*="teads.tv"],
+iframe[src*="taboola.com"],
+iframe[src*="outbrain.com"],
+iframe[id^="google_ads_iframe"],
+iframe[title*="3rd party ad content" i],
+iframe[title*="advertisement" i],
+iframe[title*="publicité" i] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  max-height: 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  pointer-events: none !important;
+  clip: rect(0, 0, 0, 0) !important;
+  position: absolute !important;
+  z-index: -999999 !important;
+}
+
+/* Ensure no empty ad gaps left behind */
+body.adshield-clean [class*="ad-"]:empty,
+body.adshield-clean [id*="ad-"]:empty,
+body.adshield-clean [class*="_ad_"]:empty,
+body.adshield-clean [class*="dfp"]:empty {
+  display: none !important;
+}

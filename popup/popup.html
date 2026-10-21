@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AdShield X AdLaurent</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="logo-wrapper">
+          <svg class="shield-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="m9 12 2 2 4-4" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <div class="pulse-ring" id="pulseRing"></div>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title-row">
+            <h1>AdLaurent</h1>
+          </div>
+          <p class="subtitle">par Djibr1l</p>
+        </div>
+      </div>
+      <div class="status-pill active" id="globalStatusPill">
+        <span class="status-dot"></span>
+        <span id="globalStatusText">ACTIF</span>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab-btn active" id="tabBtnDashboard" data-tab="tabDashboard">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+        <span>Général</span>
+      </button>
+      <button class="nav-tab-btn" id="tabBtnHistory" data-tab="tabHistory">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>Historique</span>
+        <span class="tab-badge" id="historySitesCountBadge">0</span>
+      </button>
+    </nav>
+
+    <!-- TAB 1: DASHBOARD -->
+    <main class="tab-content active" id="tabDashboard">
+      <!-- Current Site Active Card -->
+      <section class="current-site-card" id="currentSiteCard">
+        <div class="current-site-left">
+          <div class="current-site-icon" id="currentSiteIcon">🌐</div>
+          <div class="current-site-info">
+            <span class="current-site-domain" id="currentSiteDomain">Chargement...</span>
+            <span class="current-site-status" id="currentSiteStatus">Page active</span>
+          </div>
+        </div>
+        <div class="current-site-stat">
+          <span class="current-site-val" id="currentSiteBlockedCount">0</span>
+          <span class="current-site-unit">bloquées</span>
+        </div>
+      </section>
+
+      <!-- Master Switch Hero Card -->
+      <section class="master-card">
+        <div class="master-info">
+          <span class="master-title">Protection globale</span>
+          <span class="master-desc" id="masterStatusDesc">Actif</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="masterToggle" checked>
+          <span class="slider"></span>
+        </label>
+      </section>
+
+      <!-- Main Counter Hero -->
+      <section class="hero-stats">
+        <div class="hero-glow"></div>
+        <div class="hero-content">
+          <span class="stat-label">PUBLICITÉS BLOQUÉES</span>
+          <div class="stat-number-wrapper">
+            <span class="stat-number" id="totalBlockedCount">0</span>
+          </div>
+          <div class="time-saved-badge">
+            <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span id="timeSavedText">0 min économisées</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Breakdown Grid (3 columns) -->
+      <section class="breakdown-grid three-col">
+        <!-- YouTube Card -->
+        <div class="platform-card yt-card">
+          <div class="platform-header">
+            <div class="platform-icon yt-icon">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                <path
+                  d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.377.55a3.016 3.016 0 0 0-2.122 2.136C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.55 9.376.55 9.376.55s7.505 0 9.377-.55a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+              </svg>
+            </div>
+            <span class="platform-name">YouTube</span>
+          </div>
+          <div class="platform-stat">
+            <span class="platform-val" id="youtubeBlockedCount">0</span>
+            <span class="platform-unit">pubs</span>
+          </div>
+        </div>
+
+        <!-- Twitch Card -->
+        <div class="platform-card twitch-card">
+          <div class="platform-header">
+            <div class="platform-icon twitch-icon">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                <path
+                  d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
+              </svg>
+            </div>
+            <span class="platform-name">Twitch</span>
+          </div>
+          <div class="platform-stat">
+            <span class="platform-val" id="twitchBlockedCount">0</span>
+            <span class="platform-unit">pubs</span>
+          </div>
+          <div class="twitch-bonus-pill" id="twitchBonusPill" title="Points récupérés">
+            <span class="chest-icon">✦</span>
+            <span id="twitchPointsCount">+0</span>
+          </div>
+        </div>
+
+        <!-- Generic Web Card -->
+        <div class="platform-card web-card">
+          <div class="platform-header">
+            <div class="platform-icon web-icon">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                </path>
+              </svg>
+            </div>
+            <span class="platform-name">Web</span>
+          </div>
+          <div class="platform-stat">
+            <span class="platform-val" id="genericBlockedCount">0</span>
+            <span class="platform-unit">pubs</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Weekly Activity Chart -->
+      <section class="chart-section">
+        <div class="chart-header">
+          <div class="chart-title">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            <span>Activité 7 Jours</span>
+          </div>
+          <span class="chart-total-badge" id="weeklyTotalBadge">0 pubs</span>
+        </div>
+        <div class="chart-container" id="chartContainer"></div>
+      </section>
+
+      <!-- Controls List (Clean & Neutral, No Descriptions) -->
+      <section class="controls-list">
+        <div class="control-item">
+          <span class="control-title">Web</span>
+          <label class="toggle-switch small">
+            <input type="checkbox" id="genericToggle" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="control-item">
+          <span class="control-title">YouTube</span>
+          <label class="toggle-switch small">
+            <input type="checkbox" id="ytToggle" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="control-item">
+          <span class="control-title">Twitch</span>
+          <label class="toggle-switch small">
+            <input type="checkbox" id="twitchToggle" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="control-item">
+          <span class="control-title">Points Twitch</span>
+          <label class="toggle-switch small">
+            <input type="checkbox" id="twitchClaimToggle" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+
+      </section>
+    </main>
+
+    <!-- TAB 2: SITES HISTORY -->
+    <main class="tab-content" id="tabHistory">
+      <!-- Search Bar -->
+      <section class="search-section">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="historySearchInput" placeholder="Rechercher un site..." spellcheck="false"
+            autocomplete="off">
+          <button class="search-clear-btn" id="searchClearBtn" title="Effacer la recherche">✕</button>
+        </div>
+      </section>
+
+      <!-- History Header Bar -->
+      <section class="history-bar">
+        <div class="history-bar-left">
+          <span class="history-count-title" id="historySitesSummary">0 site</span>
+        </div>
+        <button class="clear-history-btn" id="clearHistoryBtn" title="Vider l'historique">
+          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span>Vider l'historique</span>
+        </button>
+      </section>
+
+      <!-- Scrollable Site List -->
+      <section class="site-history-list" id="siteHistoryList">
+        <!-- Rendered dynamically by popup.js -->
+      </section>
+    </main>
+
+    <!-- Actions & Footer -->
+    <footer class="footer">
+      <button class="action-btn secondary" id="resetBtn" title="Réinitialiser les compteurs">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
+        <span>Réinitialiser</span>
+      </button>
+
+      <button class="action-btn primary" id="reloadTabBtn" title="Actualiser la page active">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+        </svg>
+        <span>Actualiser la page</span>
+      </button>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>

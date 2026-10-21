@@ -1,0 +1,227 @@
+// Content Script for Twitch Ad Elimination & Auto-Claim - AdShield
+
+(function () {
+  'use strict';
+
+  function isExtensionValid() {
+    try {
+      return typeof chrome !== 'undefined' && !!chrome.runtime && !!chrome.runtime.id;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function safeSendMessage(message) {
+    if (!isExtensionValid()) return;
+    try {
+      chrome.runtime.sendMessage(message, () => {
+        const _ = chrome.runtime.lastError;
+      });
+    } catch (_) {}
+  }
+
+  let isEnabled = true;
+  let autoClaimEnabled = true;
+  let lastAdReportedTime = 0;
+  let lastClaimedTime = 0;
+  let streamProtectedReported = false;
+
+  // Retrieve current settings
+  if (isExtensionValid()) {
+    chrome.storage.local.get('settings', (data) => {
+      if (data && data.settings) {
+        isEnabled = data.settings.enabled !== false && data.settings.twitchEnabled !== false;
+        autoClaimEnabled = data.settings.twitchAutoClaim !== false;
+      }
+    });
+
+    // Real-time settings sync
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName === 'local' && changes.settings) {
+        const s = changes.settings.newValue;
+        isEnabled = s.enabled !== false && s.twitchEnabled !== false;
+        autoClaimEnabled = s.twitchAutoClaim !== false;
+      }
+    });
+  }
+
+  function recordAdBlocked(count = 1, category = 'Coupure Twitch', seconds = 30) {
+    if (!isEnabled || !isExtensionValid()) return;
+    const now = Date.now();
+    if (now - lastAdReportedTime > 1200) {
+      lastAdReportedTime = now;
+      safeSendMessage({
+        type: 'AD_BLOCKED',
+        platform: 'twitch',
+        domain: 'twitch.tv',
+        category: category,
+        count: count,
+        secondsSaved: seconds
+      });
+    }
+  }
+
+  // Listen to in-page ad bypass events from inject_twitch.js
+  window.addEventListener('adshield-twitch-ad-blocked', (event) => {
+    const seconds = (event.detail && event.detail.seconds) || 30;
+    recordAdBlocked(1, 'Flux Vidéo Twitch (Sans pub)', seconds);
+  });
+
+  // Permanently remove all ad containers, banners, chat cards, and overlays from Twitch DOM
+  function purgeTwitchAdElements() {
+    if (!isEnabled) return;
+
+    const selectors = [
+      // Chat ad cards, community highlights & sponsored drops (Apple TV, partner promotions, etc.)
+      '.community-highlight',
+      '[class*="community-highlight"]',
+      '.community-highlight-wrapper',
+      '[data-test-selector*="community-highlight"]',
+      '.disclosure-card',
+      '.stream-display-ad__wrapper',
+      '.stream-display-ad__container',
+      '.chat-banner',
+      '[data-a-target="chat-ad"]',
+      '[data-test-selector="chat-ad"]',
+      '[data-test-selector*="ad-banner"]',
+      '[data-test-selector="drops-claim-banner"]',
+      '.stream-chat [class*="chat-ad"]',
+      '.stream-chat [class*="ChatAd"]',
+      '.stream-chat [class*="disclosure"]',
+
+      // Video Player ad overlays & badges
+      '[data-a-target="video-ad-label"]',
+      '[data-a-target="video-ad-countdown"]',
+      '[data-test-selector="ad-banner-default-text"]',
+      '.video-player__ad-overlay',
+      '.player-ad-overlay',
+      '.tw-ad-slot',
+      '.ad-slot',
+      '.channel-page-carousel-ad',
+      '.whisper-thread--ad',
+      '.top-nav__ad-container',
+      'iframe[src*="amazon"]',
+      'script[src*="amazon-adsystem"]',
+      'script[src*="spade.twitch.tv"]',
+      '[aria-label="Annonce"]',
+      '[aria-label="Advertisement"]'
+    ];
+
+    let removedCount = 0;
+    for (const sel of selectors) {
+      const elements = document.querySelectorAll(sel);
+      elements.forEach((el) => {
+        try {
+          el.remove();
+          removedCount++;
+        } catch (_) {}
+      });
+    }
+
+    // Remove buttons or links for external ads ("En savoir plus", Apple links, etc.)
+    const adLinks = document.querySelectorAll('a[href*="apple.com"], a[href*="amazon.com/ad"], [data-a-target*="sponsor"]');
+    adLinks.forEach((a) => {
+      try {
+        const card = a.closest('.community-highlight') || a.closest('.disclosure-card') || a.closest('[class*="banner"]') || a;
+        card.remove();
+        removedCount++;
+      } catch (_) {}
+    });
+
+    // Scan for Drop Apple / Apple TV promo cards in chat
+    const chatCards = document.querySelectorAll('.stream-chat div, .chat-room div');
+    chatCards.forEach((el) => {
+      const txt = el.textContent || '';
+      if (txt.includes('Drop Apple') || (txt.includes('Abonnemen') && txt.includes('Apple'))) {
+        const card = el.closest('.community-highlight') || el.closest('[class*="Layout-sc-"]') || el;
+        try {
+          card.remove();
+          removedCount++;
+        } catch (_) {}
+      }
+    });
+
+    if (removedCount > 0) {
+      recordAdBlocked(removedCount, 'Bannières & Bannières de Chat', 10);
+    }
+
+    // Register active stream protection once live player is active
+    if (!streamProtectedReported) {
+      const player = document.querySelector('.video-player') || document.querySelector('[data-a-target="video-player"]');
+      const video = document.querySelector('video');
+      if (player && video && video.readyState >= 1) {
+        streamProtectedReported = true;
+        recordAdBlocked(1, 'Flux Vidéo Sécurisé (0 pub)', 30);
+      }
+    }
+  }
+
+  // Auto-Claim Twitch Channel Points bonus chests
+  function autoClaimChannelPoints() {
+    if (!isEnabled || !autoClaimEnabled) return;
+    const now = Date.now();
+    if (now - lastClaimedTime < 3000) return;
+
+    const claimSelectors = [
+      'button[aria-label="Claim Bonus"]',
+      'button[aria-label="Récupérer le bonus"]',
+      'button[aria-label*="Bonus"]',
+      'button[aria-label*="bonus"]',
+      '.community-points-summary button:not([disabled])',
+      '[data-test-selector="community-points-summary"] button',
+      '.claimable-bonus__icon'
+    ];
+
+    for (const sel of claimSelectors) {
+      const target = document.querySelector(sel);
+      if (target) {
+        const btn = target.tagName === 'BUTTON' ? target : target.closest('button');
+        if (btn && typeof btn.click === 'function' && !btn.disabled) {
+          btn.click();
+          lastClaimedTime = now;
+          safeSendMessage({
+            type: 'POINTS_CLAIMED',
+            amount: 50
+          });
+          break;
+        }
+      }
+    }
+  }
+
+  // Initial and periodic sweeps
+  purgeTwitchAdElements();
+
+  const purgeInterval = setInterval(() => {
+    if (!isExtensionValid()) {
+      clearInterval(purgeInterval);
+      return;
+    }
+    purgeTwitchAdElements();
+  }, 250);
+
+  const claimInterval = setInterval(() => {
+    if (!isExtensionValid()) {
+      clearInterval(claimInterval);
+      return;
+    }
+    autoClaimChannelPoints();
+  }, 1200);
+
+  // MutationObserver for instant DOM ad removal
+  const observer = new MutationObserver(() => {
+    if (!isExtensionValid()) {
+      observer.disconnect();
+      return;
+    }
+    purgeTwitchAdElements();
+    autoClaimChannelPoints();
+  });
+
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true
+  });
+
+  console.log('[AdShield] Content script Twitch actif');
+})();
