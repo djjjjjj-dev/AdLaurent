@@ -99,7 +99,8 @@
                        moviePlayer.classList.contains('ad-interrupting');
 
     const hasAdOverlay = !!document.querySelector('.ytp-ad-player-overlay-layout') ||
-                         !!document.querySelector('.ytp-ad-text');
+                         !!document.querySelector('.ytp-ad-text') ||
+                         !!document.querySelector('.ytp-ad-preview-container');
 
     const isAdShowing = hasAdClass || hasAdOverlay;
 
@@ -110,13 +111,21 @@
         wasMutedByAdLaurent = true;
       }
 
-      // 2. Click skip button immediately
+      // 2. Request native player skip in MAIN world
+      window.dispatchEvent(new CustomEvent('adlaurent-skip-youtube-ad'));
+
+      // 3. Click skip button immediately
       clickSkipButtons(moviePlayer);
 
-      // 3. Fast forward ad timeline
+      // 4. Fast forward ad timeline (ONLY if duration is short, < 180s, never on the real video!)
       video.playbackRate = 16.0;
-      if (Number.isFinite(video.duration) && video.duration > 0) {
-        video.currentTime = video.duration;
+      if (Number.isFinite(video.duration) && video.duration > 0 && video.duration < 180) {
+        video.currentTime = Math.max(0, video.duration - 0.1);
+      }
+
+      // 5. If video got paused during ad transition, trigger play to avoid black screen freeze
+      if (video.paused && !video.ended) {
+        video.play().catch(() => {});
       }
 
       recordAdBlocked(15);
@@ -128,6 +137,11 @@
       }
       if (video.playbackRate > 2.0) {
         video.playbackRate = userPlaybackRate || 1.0;
+      }
+
+      // Prevent black screen freeze: if normal video is paused at start, kickstart playback
+      if (video.paused && !video.ended && video.currentTime < 1 && (moviePlayer.classList.contains('playing-mode') || !moviePlayer.classList.contains('paused-mode'))) {
+        video.play().catch(() => {});
       }
     }
   }
@@ -222,6 +236,12 @@
       video.addEventListener('loadeddata', handleVideoAds);
     }
   }
+
+  // Re-hook whenever user navigates to another video in YouTube SPA
+  window.addEventListener('yt-navigate-finish', () => {
+    hookVideoEvents();
+    handleVideoAds();
+  });
 
   // Intervals: high speed video check and periodic feed cleaner (idle-aware)
   const hookInterval = setInterval(() => {

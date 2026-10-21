@@ -1,16 +1,17 @@
 /* YouTube Ad-Blocking Stylesheet - AdLaurent */
 
-/* Player Ad Overlays & Ads Container */
-.video-ads,
-.ytp-ad-module,
+/* Player Ad Overlays & Ads Container (Preserve .video-ads and .ytp-ad-module for skip transitions) */
 .ytp-ad-overlay-container,
 .ytp-ad-message-container,
 .ytp-ad-action-interstitial,
 .ytp-ad-progress-list,
 .ytp-ad-preview-container,
 .ytp-ad-text,
-.ytp-ad-overlay-slot {
+.ytp-ad-overlay-slot,
+.ytp-ad-image-overlay {
   display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* Home & Feed Grid Ads - Collapse entire grid cards to eliminate black squares */
