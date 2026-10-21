@@ -22,9 +22,9 @@
 
   let isEnabled = true;
   let autoClaimEnabled = true;
-  let lastAdReportedTime = 0;
+  let lastVideoAdReportedTime = 0;
+  let lastBannerReportedTime = 0;
   let lastClaimedTime = 0;
-  let streamProtectedReported = false;
 
   // Retrieve current settings
   if (isExtensionValid()) {
@@ -47,24 +47,23 @@
 
   function recordAdBlocked(count = 1, category = 'Coupure Twitch', seconds = 30) {
     if (!isEnabled || !isExtensionValid()) return;
-    const now = Date.now();
-    if (now - lastAdReportedTime > 1200) {
-      lastAdReportedTime = now;
-      safeSendMessage({
-        type: 'AD_BLOCKED',
-        platform: 'twitch',
-        domain: 'twitch.tv',
-        category: category,
-        count: count,
-        secondsSaved: seconds
-      });
-    }
+    safeSendMessage({
+      type: 'AD_BLOCKED',
+      platform: 'twitch',
+      domain: 'twitch.tv',
+      category: category,
+      count: count,
+      secondsSaved: seconds
+    });
   }
 
-  // Listen to in-page ad bypass events from inject_twitch.js
+  // Listen to in-page ad bypass events from inject_twitch.js (1 per ad break)
   window.addEventListener('adlaurent-twitch-ad-blocked', (event) => {
+    const now = Date.now();
+    if (now - lastVideoAdReportedTime < 25000) return;
+    lastVideoAdReportedTime = now;
     const seconds = (event.detail && event.detail.seconds) || 30;
-    recordAdBlocked(1, 'Flux Vidéo Twitch (Sans pub)', seconds);
+    recordAdBlocked(1, 'Coupure Vidéo Twitch (Sans pub)', seconds);
   });
 
   // Permanently remove all ad containers, banners, chat cards, and overlays from Twitch DOM
@@ -111,6 +110,8 @@
     for (const sel of selectors) {
       const elements = document.querySelectorAll(sel);
       elements.forEach((el) => {
+        if (el.dataset.adlaurentRemoved) return;
+        el.dataset.adlaurentRemoved = 'true';
         try {
           el.remove();
           removedCount++;
@@ -121,37 +122,20 @@
     // Remove buttons or links for external ads ("En savoir plus", Apple links, etc.)
     const adLinks = document.querySelectorAll('a[href*="apple.com"], a[href*="amazon.com/ad"], [data-a-target*="sponsor"]');
     adLinks.forEach((a) => {
+      if (a.dataset.adlaurentRemoved) return;
+      a.dataset.adlaurentRemoved = 'true';
       try {
-        const card = a.closest('.community-highlight') || a.closest('.disclosure-card') || a.closest('[class*="banner"]') || a;
+        const card = a.closest('.community-highlight') || a.closest('.disclosure-card') || a.closest('.chat-banner') || a;
         card.remove();
         removedCount++;
       } catch (_) {}
     });
 
-    // Scan for Drop Apple / Apple TV promo cards in chat
-    const chatCards = document.querySelectorAll('.stream-chat div, .chat-room div');
-    chatCards.forEach((el) => {
-      const txt = el.textContent || '';
-      if (txt.includes('Drop Apple') || (txt.includes('Abonnemen') && txt.includes('Apple'))) {
-        const card = el.closest('.community-highlight') || el.closest('[class*="Layout-sc-"]') || el;
-        try {
-          card.remove();
-          removedCount++;
-        } catch (_) {}
-      }
-    });
-
     if (removedCount > 0) {
-      recordAdBlocked(removedCount, 'Bannières & Bannières de Chat', 10);
-    }
-
-    // Register active stream protection once live player is active
-    if (!streamProtectedReported) {
-      const player = document.querySelector('.video-player') || document.querySelector('[data-a-target="video-player"]');
-      const video = document.querySelector('video');
-      if (player && video && video.readyState >= 1) {
-        streamProtectedReported = true;
-        recordAdBlocked(1, 'Flux Vidéo Sécurisé (0 pub)', 30);
+      const now = Date.now();
+      if (now - lastBannerReportedTime > 15000) {
+        lastBannerReportedTime = now;
+        recordAdBlocked(1, 'Bannières & Promos', 10);
       }
     }
   }

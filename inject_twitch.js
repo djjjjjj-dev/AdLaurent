@@ -780,9 +780,15 @@
         playerBufferState.isLive = isLive;
         setTimeout(monitorPlayerBuffering, PlayerBufferingDelay);
     }
+    let isCurrentlyShowingAd = false;
     function updateAdblockBanner(data) {
         if (data && data.hasAds) {
-            window.dispatchEvent(new CustomEvent('adlaurent-twitch-ad-blocked', { detail: { seconds: 30 } }));
+            if (!isCurrentlyShowingAd) {
+                isCurrentlyShowingAd = true;
+                window.dispatchEvent(new CustomEvent('adlaurent-twitch-ad-blocked', { detail: { seconds: 30 } }));
+            }
+        } else {
+            isCurrentlyShowingAd = false;
         }
     }
     function getPlayerAndState() {
