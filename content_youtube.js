@@ -66,22 +66,32 @@
       '.ytp-ad-skip-button',
       '.ytp-ad-skip-button-modern',
       '.ytp-skip-ad-button',
-      '.ytp-ad-skip-button-slot button',
       'button.ytp-ad-skip-button',
       'button.ytp-ad-skip-button-modern',
+      'button.ytp-skip-ad-button',
+      '.ytp-ad-skip-button-container button',
+      '.ytp-ad-skip-button-slot button',
       '.ytp-ad-overlay-close-button',
       '[id^="skip-button:"]',
       'button[aria-label="Skip ad"]',
-      'button[aria-label="Passer l\'annonce"]'
+      'button[aria-label="Passer l\'annonce"]',
+      'button[aria-label*="Passer"]',
+      'button[aria-label*="Skip"]',
+      '.videoAdUiSkipButton',
+      '.ytp-ad-preview-container',
+      '.ytp-ad-survey button'
     ];
 
     const root = player || document;
     for (const selector of skipSelectors) {
-      const btn = root.querySelector(selector);
-      if (btn && typeof btn.click === 'function') {
-        btn.click();
-        break;
-      }
+      const elements = root.querySelectorAll(selector);
+      elements.forEach(btn => {
+        if (btn && typeof btn.click === 'function') {
+          try {
+            btn.click();
+          } catch (_) {}
+        }
+      });
     }
   }
 
@@ -114,13 +124,13 @@
       // 2. Request native player skip in MAIN world
       window.dispatchEvent(new CustomEvent('adlaurent-skip-youtube-ad'));
 
-      // 3. Click skip button immediately
+      // 3. Click all available skip buttons immediately
       clickSkipButtons(moviePlayer);
 
-      // 4. Fast forward ad timeline (ONLY if duration is short, < 180s, never on the real video!)
+      // 4. Fast forward ad timeline past duration so 'ended' event triggers native transition
       video.playbackRate = 16.0;
-      if (Number.isFinite(video.duration) && video.duration > 0 && video.duration < 180) {
-        video.currentTime = Math.max(0, video.duration - 0.1);
+      if (Number.isFinite(video.duration) && video.duration > 0 && video.duration < 300) {
+        video.currentTime = video.duration + 0.1;
       }
 
       // 5. If video got paused during ad transition, trigger play to avoid black screen freeze
@@ -139,9 +149,12 @@
         video.playbackRate = userPlaybackRate || 1.0;
       }
 
-      // Prevent black screen freeze: if normal video is paused at start, kickstart playback
-      if (video.paused && !video.ended && video.currentTime < 1 && (moviePlayer.classList.contains('playing-mode') || !moviePlayer.classList.contains('paused-mode'))) {
-        video.play().catch(() => {});
+      // Prevent black screen freeze: if normal video is paused at start or after ad skip, kickstart playback
+      if (video.paused && !video.ended) {
+        const isUserPaused = moviePlayer.classList.contains('paused-mode') && !moviePlayer.classList.contains('ad-showing');
+        if (!isUserPaused || video.currentTime < 0.5) {
+          video.play().catch(() => {});
+        }
       }
     }
   }
@@ -237,19 +250,43 @@
     }
   }
 
+  // Instant 0ms Player Mutation Observer (mimics Adblock for YouTube's instant skip trigger)
+  function observePlayer() {
+    const moviePlayer = document.getElementById('movie_player') || document.querySelector('.html5-video-player');
+    if (!moviePlayer || moviePlayer.dataset.adlaurentObserved) return;
+
+    moviePlayer.dataset.adlaurentObserved = 'true';
+
+    const playerObserver = new MutationObserver(() => {
+      handleVideoAds();
+    });
+
+    playerObserver.observe(moviePlayer, {
+      attributes: true,
+      attributeFilter: ['class'],
+      childList: true,
+      subtree: true
+    });
+
+    hookVideoEvents();
+    handleVideoAds();
+  }
+
   // Re-hook whenever user navigates to another video in YouTube SPA
   window.addEventListener('yt-navigate-finish', () => {
+    observePlayer();
     hookVideoEvents();
     handleVideoAds();
   });
 
-  // Intervals: high speed video check and periodic feed cleaner (idle-aware)
+  // Intervals: high speed video check (50ms like AdBlock for YouTube) and periodic feed cleaner (idle-aware)
   const hookInterval = setInterval(() => {
     if (!isExtensionValid()) {
       clearInterval(hookInterval);
       return;
     }
     if (document.hidden) return;
+    observePlayer();
     hookVideoEvents();
   }, 1000);
 
@@ -260,7 +297,7 @@
     }
     if (document.hidden) return;
     handleVideoAds();
-  }, 350);
+  }, 50);
 
   const cleanInterval = setInterval(() => {
     if (!isExtensionValid()) {
@@ -272,13 +309,16 @@
     bypassAntiAdblock();
   }, 1200);
 
-  // Run initial cleaning once DOM is ready
+  // Run initial observation and cleaning once DOM is ready
+  observePlayer();
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+      observePlayer();
       hookVideoEvents();
       cleanHomepageAndFeeds();
     });
   } else {
+    observePlayer();
     hookVideoEvents();
     cleanHomepageAndFeeds();
   }

@@ -3,6 +3,19 @@
 (function () {
   'use strict';
 
+  // Lock google_ad_status to 1 to bypass Google anti-adblocker detection and timeout enforcement
+  try {
+    window.google_ad_status = 1;
+    Object.defineProperty(window, 'google_ad_status', {
+      configurable: false,
+      enumerable: true,
+      get() {
+        return 1;
+      },
+      set(_) {}
+    });
+  } catch (_) {}
+
   // Safe ad placement cleaner: set to empty arrays instead of deleting to prevent TypeError crashes in YouTube's player
   function cleanPlayerResponse(obj) {
     if (!obj || typeof obj !== 'object') return obj;
