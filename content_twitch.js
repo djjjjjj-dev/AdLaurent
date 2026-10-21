@@ -49,7 +49,7 @@
   }
 
   function recordAdBlocked(count = 1, category = 'Coupure Twitch', seconds = 30, target = '', method = '') {
-    if (!isEnabled || !isExtensionValid()) return;
+    if (!isEnabled || !isExtensionValid() || document.hidden) return;
     safeSendMessage({
       type: 'AD_BLOCKED',
       platform: 'twitch',
@@ -64,6 +64,7 @@
 
   // Listen to in-page ad bypass events from inject_twitch.js (1 per ad break)
   window.addEventListener('adlaurent-twitch-ad-blocked', (event) => {
+    if (document.hidden) return;
     const now = Date.now();
     if (now - lastVideoAdReportedTime < 25000) return;
     lastVideoAdReportedTime = now;
@@ -71,9 +72,9 @@
     recordAdBlocked(1, 'Coupure Vidéo Twitch (Sans pub)', seconds, 'Coupure pub flux vidéo (M3U8 Usher)', 'VAFT Engine - Suppression segments pub & maintien du live');
   });
 
-  // Permanently remove all ad containers, banners, chat cards, and overlays from Twitch DOM
+  // Permanently remove all ad containers, banners, chat cards, and overlays from Twitch DOM (Active tab only)
   function purgeTwitchAdElements() {
-    if (!isEnabled) return;
+    if (!isEnabled || document.hidden) return;
 
     const selectors = [
       // Chat ad cards, community highlights & sponsored drops (Apple TV, partner promotions, etc.)

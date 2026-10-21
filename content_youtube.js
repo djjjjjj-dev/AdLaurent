@@ -44,7 +44,7 @@
   }
 
   function recordAdBlocked(seconds = 15, target = 'Annonce vidéo YouTube (Midroll / Preroll)', method = 'Interception Player (Avance 16x & Auto-skip)') {
-    if (!isExtensionValid()) return;
+    if (!isExtensionValid() || document.hidden) return;
     const now = Date.now();
     if (now - lastAdSkippedTime > 1200) {
       lastAdSkippedTime = now;
@@ -85,9 +85,9 @@
     }
   }
 
-  // Handle Video Player Ads with instant acceleration
+  // Handle Video Player Ads with instant acceleration (Active tab only)
   function handleVideoAds() {
-    if (!isEnabled) return;
+    if (!isEnabled || document.hidden) return;
 
     const moviePlayer = document.getElementById('movie_player') || document.querySelector('.html5-video-player');
     const video = document.querySelector('video');

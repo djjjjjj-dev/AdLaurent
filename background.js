@@ -45,12 +45,12 @@ function cleanDomain(input) {
   return str.replace(/^www\./, '');
 }
 
-// Inject content script into active open tabs on install/update
+// Inject content script ONLY into the active tab on install/update
 async function injectIntoExistingTabs() {
   try {
-    const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] });
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     for (const tab of tabs) {
-      if (!tab.id || tab.url.startsWith('chrome')) continue;
+      if (!tab.id || !tab.url || tab.url.startsWith('chrome')) continue;
 
       if (tab.url.includes('twitch.tv')) {
         chrome.scripting.executeScript({
@@ -184,6 +184,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.type === 'AD_BLOCKED') {
+    // Only process ad block events from the active tab
+    if (sender && sender.tab && !sender.tab.active) {
+      sendResponse({ success: false, reason: 'ignored_background_tab' });
+      return true;
+    }
+
     let domain = '';
     // Priority 1: Top-level tab URL (what the user actually sees in address bar)
     if (sender && sender.tab && sender.tab.url) {
@@ -361,14 +367,21 @@ if (chrome.declarativeNetRequest && chrome.declarativeNetRequest.onRuleMatchedDe
     const url = info.request.url || '';
     let domain = '';
 
-    // 1. Get domain from active tab
+    // 1. Get domain from active tab and ensure tab is active
     if (typeof info.request.tabId === 'number' && info.request.tabId >= 0) {
       try {
         const tab = await chrome.tabs.get(info.request.tabId);
-        if (tab && tab.url) {
+        if (!tab || !tab.active) {
+          return; // Ignore network blocks on background tabs
+        }
+        if (tab.url) {
           domain = cleanDomain(tab.url);
         }
-      } catch (_) {}
+      } catch (_) {
+        return;
+      }
+    } else {
+      return; // If no tab associated, do not count
     }
 
     // 2. Initiator fallback

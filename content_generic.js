@@ -202,9 +202,9 @@
   let lastReportedTarget = '';
   let lastReportedMethod = '';
 
-  // Notify background about blocked ads with batching
+  // Notify background about blocked ads with batching (Strict Active Tab only)
   function reportBlockedAds(count = 1, category = 'Bannières & Widgets', target = '', method = '') {
-    if (!isEnabled) return;
+    if (!isEnabled || document.hidden) return;
     pendingBlockCount += count;
     sessionBlockedCount += count;
     lastReportedType = category;
@@ -213,6 +213,10 @@
 
     if (reportTimeout) clearTimeout(reportTimeout);
     reportTimeout = setTimeout(() => {
+      if (document.hidden) {
+        pendingBlockCount = 0;
+        return;
+      }
       if (pendingBlockCount > 0) {
         const toSend = pendingBlockCount;
         pendingBlockCount = 0;
@@ -233,9 +237,9 @@
     }, 350);
   }
 
-  // Fast DOM Ad Cleaner - Complete Physical DOM Removal
+  // Fast DOM Ad Cleaner - Complete Physical DOM Removal (Active tab only)
   function cleanAdElements(root = document) {
-    if (!isEnabled) return;
+    if (!isEnabled || document.hidden) return;
     if (isYouTube || isTwitch) return; // Specialized scripts handle these
 
     try {
@@ -287,7 +291,7 @@
 
   // Universal HTML5 Video Ad Skipper (e.g., news portals, Dailymotion, video embeds)
   function handleGenericVideoAds() {
-    if (!isEnabled || isYouTube || isTwitch) return;
+    if (!isEnabled || isYouTube || isTwitch || document.hidden) return;
 
     const videos = document.querySelectorAll('video');
     videos.forEach((video) => {
@@ -689,6 +693,7 @@
   }
 
   function cleanAll() {
+    if (document.hidden) return; // Only execute when this tab is actively visible
     cleanAdElements(document);
     handleGenericVideoAds();
     killAntiAdblock();
@@ -701,23 +706,25 @@
   // Initialization sequence
   setupPopupProtection();
 
-  // Run immediately on existing elements
-  cleanAll();
+  // Run immediately ONLY on active tab
+  if (!document.hidden) {
+    cleanAll();
+  }
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       initDoc();
       initObserver();
-      cleanAll();
+      if (!document.hidden) cleanAll();
     });
   } else {
     initDoc();
     initObserver();
-    cleanAll();
+    if (!document.hidden) cleanAll();
   }
 
   window.addEventListener('load', () => {
-    cleanAll();
+    if (!document.hidden) cleanAll();
   });
 
   // Periodic safety sweep (5000ms and only when tab is visible)
