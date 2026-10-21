@@ -1,4 +1,4 @@
-// Content Script for Twitch Ad Elimination & Auto-Claim - AdShield
+// Content Script for Twitch Ad Elimination & Auto-Claim - AdLaurent
 
 (function () {
   'use strict';
@@ -62,7 +62,7 @@
   }
 
   // Listen to in-page ad bypass events from inject_twitch.js
-  window.addEventListener('adshield-twitch-ad-blocked', (event) => {
+  window.addEventListener('adlaurent-twitch-ad-blocked', (event) => {
     const seconds = (event.detail && event.detail.seconds) || 30;
     recordAdBlocked(1, 'Flux Vidéo Twitch (Sans pub)', seconds);
   });
@@ -223,5 +223,5 @@
     subtree: true
   });
 
-  console.log('[AdShield] Content script Twitch actif');
+  console.log('[AdLaurent] Content script Twitch actif');
 })();

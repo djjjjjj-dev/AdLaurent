@@ -1,4 +1,4 @@
-// AdShield Pro - Universal Content Script for All Websites
+// AdLaurent - Universal Content Script for All Websites
 
 (function () {
   'use strict';
@@ -211,9 +211,9 @@
 
       for (let i = 0; i < candidates.length; i++) {
         const el = candidates[i];
-        if (!el || el.dataset.adshieldBlocked) continue;
+        if (!el || el.dataset.adlaurentBlocked) continue;
 
-        el.dataset.adshieldBlocked = 'true';
+        el.dataset.adlaurentBlocked = 'true';
 
         // Blank out iframe sources immediately to stop network activity
         try {
@@ -258,13 +258,13 @@
 
     const videos = document.querySelectorAll('video');
     videos.forEach((video) => {
-      if (video.dataset.adshieldChecked) return;
+      if (video.dataset.adlaurentChecked) return;
 
       const parentAd = video.closest('[class*="ad-"], [class*="ads-"], [id*="ad-"], .video-ad, .ad-container, .preroll, [class*="pub-"], [class*="dfp"]');
       const isShortAd = video.duration && video.duration < 35 && (video.src.includes('ad') || video.currentSrc.includes('ad'));
 
       if (parentAd || isShortAd) {
-        video.dataset.adshieldChecked = 'true';
+        video.dataset.adlaurentChecked = 'true';
         video.muted = true;
         if (isFinite(video.duration) && video.duration > 0) {
           video.currentTime = video.duration;
@@ -297,7 +297,7 @@
         const isSuspicious = suspiciousPatterns.some((pattern) => urlString.includes(pattern));
 
         if (isSuspicious) {
-          console.warn('[AdShield Pro] Popup publicitaire neutralisé:', url);
+          console.warn('[AdLaurent] Popup publicitaire neutralisé:', url);
           reportBlockedAds(1, 'Fenêtre Pop-up');
           return null;
         }
@@ -310,7 +310,7 @@
   // Document class indicator
   function initDoc() {
     if (document.body) {
-      document.body.classList.add('adshield-clean');
+      document.body.classList.add('adlaurent-clean');
     }
   }
 
@@ -386,11 +386,11 @@
     // Detect text-based anti-adblock modals with fixed/absolute positioning
     const fixedOverlays = document.querySelectorAll('div[style*="fixed"], div[style*="absolute"]');
     fixedOverlays.forEach((el) => {
-      if (el.dataset.adshieldChecked) return;
+      if (el.dataset.adlaurentChecked) return;
       const txt = (el.innerText || '').toLowerCase();
       if ((txt.includes('bloqueur') || txt.includes('adblock') || txt.includes('ad blocker')) &&
           (txt.includes('désactiver') || txt.includes('disable') || txt.includes('whitelist') || txt.includes('soutenir'))) {
-        el.dataset.adshieldChecked = 'true';
+        el.dataset.adlaurentChecked = 'true';
         try {
           el.remove();
           killed++;
@@ -580,11 +580,11 @@
     // Detect exit-intent email subscription overlays with fixed position
     const fixedOverlays = document.querySelectorAll('div[style*="fixed"]');
     fixedOverlays.forEach((el) => {
-      if (el.dataset.adshieldNewsletter) return;
+      if (el.dataset.adlaurentNewsletter) return;
       const hasEmailInput = el.querySelector('input[type="email"], input[name*="email" i]');
       const text = (el.innerText || '').toLowerCase();
       if (hasEmailInput && (text.includes('newsletter') || text.includes('abonnez') || text.includes('inscrivez') || text.includes('subscribe'))) {
-        el.dataset.adshieldNewsletter = 'true';
+        el.dataset.adlaurentNewsletter = 'true';
         try {
           el.remove();
           removed++;

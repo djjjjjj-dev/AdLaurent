@@ -1,4 +1,4 @@
-# AdShield - par Djibr1l
+# AdLaurent - par Djibr1l
 
 Extension Chrome (Manifest V3) de blocage de publicités pour YouTube, Twitch et l'ensemble des sites web.
 

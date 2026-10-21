@@ -782,7 +782,7 @@
     }
     function updateAdblockBanner(data) {
         if (data && data.hasAds) {
-            window.dispatchEvent(new CustomEvent('adshield-twitch-ad-blocked', { detail: { seconds: 30 } }));
+            window.dispatchEvent(new CustomEvent('adlaurent-twitch-ad-blocked', { detail: { seconds: 30 } }));
         }
     }
     function getPlayerAndState() {

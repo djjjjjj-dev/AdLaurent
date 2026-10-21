@@ -1,4 +1,4 @@
-// Background Service Worker - AdShield Pro (Universal Edition)
+// Background Service Worker - AdLaurent (Universal Edition)
 
 const DEFAULT_STATE = {
   settings: {

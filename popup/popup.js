@@ -1,4 +1,4 @@
-// AdShield Pro - Popup Controller (Universal & History Edition)
+// AdLaurent - Popup Controller (Universal & History Edition)
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Navigation Tabs

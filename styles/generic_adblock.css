@@ -1,4 +1,4 @@
-/* AdShield Pro - Universal Ad-Block Engine (CSS Filters) */
+/* AdLaurent - Universal Ad-Block Engine (CSS Filters) */
 
 /* Google AdSense, DoubleClick & Google Publisher Tag (DFP/GAM) */
 .adsbygoogle,
@@ -182,10 +182,10 @@ iframe[title*="publicité" i] {
 }
 
 /* Ensure no empty ad gaps left behind */
-body.adshield-clean [class*="ad-"]:empty,
-body.adshield-clean [id*="ad-"]:empty,
-body.adshield-clean [class*="_ad_"]:empty,
-body.adshield-clean [class*="dfp"]:empty {
+body.adlaurent-clean [class*="ad-"]:empty,
+body.adlaurent-clean [id*="ad-"]:empty,
+body.adlaurent-clean [class*="_ad_"]:empty,
+body.adlaurent-clean [class*="dfp"]:empty {
   display: none !important;
 }
 

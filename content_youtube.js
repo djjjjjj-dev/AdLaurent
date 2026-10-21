@@ -1,9 +1,9 @@
-// Content Script for YouTube Ad Blocking & DOM Cleaner - AdShield Pro
+// Content Script for YouTube Ad Blocking & DOM Cleaner - AdLaurent
 
 (function () {
   let isEnabled = true;
   let lastAdSkippedTime = 0;
-  let wasMutedByAdShield = false;
+  let wasMutedByAdLaurent = false;
   let userPlaybackRate = 1.0;
 
   function isExtensionValid() {
@@ -102,7 +102,7 @@
       // 1. Mute to prevent glitchy audio during skip
       if (!video.muted) {
         video.muted = true;
-        wasMutedByAdShield = true;
+        wasMutedByAdLaurent = true;
       }
 
       // 2. Click skip button immediately
@@ -117,9 +117,9 @@
       recordAdBlocked(15);
     } else {
       // Normal video playing - restore normal audio/speed
-      if (wasMutedByAdShield) {
+      if (wasMutedByAdLaurent) {
         video.muted = false;
-        wasMutedByAdShield = false;
+        wasMutedByAdLaurent = false;
       }
       if (video.playbackRate > 2.0) {
         video.playbackRate = userPlaybackRate || 1.0;
@@ -210,8 +210,8 @@
   // Hook into video element events for zero-delay skipping
   function hookVideoEvents() {
     const video = document.querySelector('video');
-    if (video && !video.dataset.adshieldHooked) {
-      video.dataset.adshieldHooked = 'true';
+    if (video && !video.dataset.adlaurentHooked) {
+      video.dataset.adlaurentHooked = 'true';
       video.addEventListener('timeupdate', handleVideoAds);
       video.addEventListener('play', handleVideoAds);
       video.addEventListener('loadeddata', handleVideoAds);
@@ -255,5 +255,5 @@
     cleanHomepageAndFeeds();
   }
 
-  console.log('[AdShield Pro] YouTube zero-delay engine running');
+  console.log('[AdLaurent] YouTube zero-delay engine running');
 })();

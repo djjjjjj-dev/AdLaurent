@@ -1,4 +1,4 @@
-// AdShield Pro - YouTube In-Page Ad Neutralizer (Runs in MAIN world context)
+// AdLaurent - YouTube In-Page Ad Neutralizer (Runs in MAIN world context)
 
 (function () {
   'use strict';
@@ -78,5 +78,5 @@
     return originalXHR.apply(this, [method, url, ...rest]);
   };
 
-  console.log('[AdShield Pro] Zero-delay YouTube engine initialized');
+  console.log('[AdLaurent] Zero-delay YouTube engine initialized');
 })();

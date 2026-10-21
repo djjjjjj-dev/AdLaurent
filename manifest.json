@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "AdShield",
+  "name": "AdLaurent",
   "author": "Djibr1l",
   "version": "1.1.0",
   "description": "Bloqueur de publicités par Djibr1l.",
@@ -11,7 +11,7 @@
   },
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "AdShield Pro",
+    "default_title": "AdLaurent",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

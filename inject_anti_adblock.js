@@ -1,4 +1,4 @@
-// AdShield - Anti-Adblock Killer & Trap Defuser (MAIN world)
+// AdLaurent - Anti-Adblock Killer & Trap Defuser (MAIN world)
 
 (function () {
   'use strict';
