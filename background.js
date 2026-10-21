@@ -67,7 +67,7 @@ async function injectIntoExistingTabs() {
           files: ['styles/twitch.css']
         }).catch(() => {});
       } else if (!tab.url.includes('youtube.com')) {
-        const isMs = /teams\.(microsoft|live)\.com|login\.(microsoftonline|live)\.com|\.office\.(com|net|365\.com)|\.skype\.com|\.microsoft\.com|msauth\.net|msftauth\.net|\.azure\.com/i.test(tab.url);
+        const isMs = /cloud\.microsoft|teams\.|microsoft\.|office\.|office365\.|skype\.|sharepoint\.|live\.com|msauth\.net|msftauth\.net|azure|trafficmanager\.net|windows\.net|msecnd\.net|gfx\.ms|lync\.com/i.test(tab.url);
         if (isMs) continue;
 
         chrome.scripting.executeScript({
@@ -412,7 +412,7 @@ const TRACKING_PARAMS = [
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.url && (changeInfo.url.startsWith('http://') || changeInfo.url.startsWith('https://'))) {
     // Whitelist Microsoft Teams, Office, Azure, and SSO authentication endpoints from URL rewriting
-    if (/teams\.(microsoft|live)\.com|login\.(microsoftonline|live)\.com|\.office\.(com|net|365\.com)|\.skype\.com|\.microsoft\.com|msauth\.net|msftauth\.net|\.azure\.com/i.test(changeInfo.url)) {
+    if (/cloud\.microsoft|teams\.|microsoft\.|office\.|office365\.|skype\.|sharepoint\.|live\.com|msauth\.net|msftauth\.net|azure|trafficmanager\.net|windows\.net|msecnd\.net|gfx\.ms|lync\.com/i.test(changeInfo.url)) {
       return;
     }
 

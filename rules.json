@@ -412,5 +412,53 @@
       "urlFilter": "||spade.twitch.tv/*",
       "resourceTypes": ["xmlhttprequest", "ping"]
     }
+  },
+  {
+    "id": 100,
+    "priority": 10,
+    "action": { "type": "allow" },
+    "condition": {
+      "initiatorDomains": [
+        "teams.microsoft.com",
+        "teams.cloud.microsoft",
+        "cloud.microsoft",
+        "teams.live.com",
+        "microsoft.com",
+        "microsoftonline.com",
+        "office.com",
+        "office.net",
+        "skype.com",
+        "sharepoint.com",
+        "live.com"
+      ]
+    }
+  },
+  {
+    "id": 101,
+    "priority": 10,
+    "action": { "type": "allow" },
+    "condition": {
+      "requestDomains": [
+        "teams.microsoft.com",
+        "teams.cloud.microsoft",
+        "cloud.microsoft",
+        "teams.live.com",
+        "microsoft.com",
+        "microsoftonline.com",
+        "office.com",
+        "office.net",
+        "skype.com",
+        "sharepoint.com",
+        "live.com",
+        "azure.com",
+        "azureedge.net",
+        "windows.net",
+        "trafficmanager.net",
+        "msauth.net",
+        "msftauth.net",
+        "msecnd.net",
+        "gfx.ms"
+      ]
+    }
   }
 ]

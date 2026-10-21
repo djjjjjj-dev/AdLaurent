@@ -44,6 +44,8 @@
     {
       "matches": ["<all_urls>"],
       "exclude_matches": [
+        "*://*.cloud.microsoft/*",
+        "*://cloud.microsoft/*",
         "*://*.teams.microsoft.com/*",
         "*://teams.microsoft.com/*",
         "*://*.teams.live.com/*",
@@ -63,7 +65,13 @@
         "*://*.msftauth.net/*",
         "*://*.msauth.net/*",
         "*://*.azure.com/*",
-        "*://*.azureedge.net/*"
+        "*://*.azureedge.net/*",
+        "*://*.windows.net/*",
+        "*://*.trafficmanager.net/*",
+        "*://*.msecnd.net/*",
+        "*://*.gfx.ms/*",
+        "*://*.lync.com/*",
+        "*://*.skypeforbusiness.com/*"
       ],
       "js": ["inject_anti_adblock.js"],
       "world": "MAIN",
@@ -73,6 +81,8 @@
     {
       "matches": ["<all_urls>"],
       "exclude_matches": [
+        "*://*.cloud.microsoft/*",
+        "*://cloud.microsoft/*",
         "*://*.teams.microsoft.com/*",
         "*://teams.microsoft.com/*",
         "*://*.teams.live.com/*",
@@ -92,7 +102,13 @@
         "*://*.msftauth.net/*",
         "*://*.msauth.net/*",
         "*://*.azure.com/*",
-        "*://*.azureedge.net/*"
+        "*://*.azureedge.net/*",
+        "*://*.windows.net/*",
+        "*://*.trafficmanager.net/*",
+        "*://*.msecnd.net/*",
+        "*://*.gfx.ms/*",
+        "*://*.lync.com/*",
+        "*://*.skypeforbusiness.com/*"
       ],
       "js": ["content_generic.js"],
       "css": ["styles/generic_adblock.css"],

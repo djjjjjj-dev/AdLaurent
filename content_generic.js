@@ -7,9 +7,25 @@
   const isYouTube = hostname.includes('youtube.com');
   const isTwitch = hostname.includes('twitch.tv');
 
-  // Whitelist Microsoft Teams, Office 365, Azure, and Microsoft SSO
-  const isMicrosoftSuite = /teams\.(microsoft|live)\.com|login\.(microsoftonline|live)\.com|\.office\.(com|net|365\.com)|\.skype\.com|\.sharepoint\.com|\.microsoft\.com|msauth\.net|msftauth\.net|\.azure\.com/i.test(hostname);
-  if (isMicrosoftSuite) {
+  function isTeamsOrWorkplace() {
+    const testPattern = /cloud\.microsoft|teams\.|microsoft\.|office\.|office365\.|skype\.|sharepoint\.|live\.com|msauth\.net|msftauth\.net|azure|trafficmanager\.net|windows\.net|msecnd\.net|gfx\.ms|lync\.com/i;
+    const host = (window.location.hostname || '').toLowerCase();
+    const href = (window.location.href || '').toLowerCase();
+    if (testPattern.test(host) || testPattern.test(href)) return true;
+
+    try {
+      if (document.referrer && testPattern.test(document.referrer)) return true;
+      if (window.location.ancestorOrigins) {
+        for (let i = 0; i < window.location.ancestorOrigins.length; i++) {
+          if (testPattern.test(window.location.ancestorOrigins[i])) return true;
+        }
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  // Whitelist Microsoft Teams, Microsoft 365 Cloud, and enterprise authentication
+  if (isTeamsOrWorkplace()) {
     return;
   }
 
@@ -304,7 +320,7 @@
         const urlString = String(url || '').toLowerCase();
 
         // Never intercept authentication, workspace, or common SSO popups
-        if (/teams\.(microsoft|live)\.com|login\.(microsoftonline|live)\.com|\.microsoft\.com|\.office\.com|\.google\.com|accounts\.google|\.github\.com|\.apple\.com/i.test(urlString)) {
+        if (/cloud\.microsoft|teams\.|login\.|microsoft\.|office\.|google\.|accounts\.google|github\.|apple\./i.test(urlString)) {
           return originalWindowOpen.apply(this, arguments);
         }
 

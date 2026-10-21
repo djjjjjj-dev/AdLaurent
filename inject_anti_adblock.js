@@ -3,9 +3,25 @@
 (function () {
   'use strict';
 
-  // Whitelist Microsoft Teams, Office 365, and Azure/Microsoft SSO
-  const hostname = (window.location.hostname || '').toLowerCase();
-  if (/teams\.(microsoft|live)\.com|login\.(microsoftonline|live)\.com|\.office\.(com|net|365\.com)|\.skype\.com|\.sharepoint\.com|\.microsoft\.com|msauth\.net|msftauth\.net|\.azure\.com/i.test(hostname)) {
+  function isTeamsOrWorkplace() {
+    const testPattern = /cloud\.microsoft|teams\.|microsoft\.|office\.|office365\.|skype\.|sharepoint\.|live\.com|msauth\.net|msftauth\.net|azure|trafficmanager\.net|windows\.net|msecnd\.net|gfx\.ms|lync\.com/i;
+    const host = (window.location.hostname || '').toLowerCase();
+    const href = (window.location.href || '').toLowerCase();
+    if (testPattern.test(host) || testPattern.test(href)) return true;
+
+    try {
+      if (document.referrer && testPattern.test(document.referrer)) return true;
+      if (window.location.ancestorOrigins) {
+        for (let i = 0; i < window.location.ancestorOrigins.length; i++) {
+          if (testPattern.test(window.location.ancestorOrigins[i])) return true;
+        }
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  // Whitelist Microsoft Teams, Microsoft 365 Cloud, and enterprise authentication
+  if (isTeamsOrWorkplace()) {
     return;
   }
 
@@ -44,7 +60,6 @@
     window.fuckAdBlock = fakeBab;
     window.BlockAdBlock = function () { return fakeBab; };
     window.FuckAdBlock = function () { return fakeBab; };
-    window.snackBar = window.snackBar || {};
   } catch (_) {}
 
   // 3. Mock Google Funding Choices (googlefc)
