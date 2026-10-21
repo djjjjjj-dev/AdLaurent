@@ -67,6 +67,9 @@ async function injectIntoExistingTabs() {
           files: ['styles/twitch.css']
         }).catch(() => {});
       } else if (!tab.url.includes('youtube.com')) {
+        const isMs = /teams\.(microsoft|live)\.com|login\.(microsoftonline|live)\.com|\.office\.(com|net|365\.com)|\.skype\.com|\.microsoft\.com|msauth\.net|msftauth\.net|\.azure\.com/i.test(tab.url);
+        if (isMs) continue;
+
         chrome.scripting.executeScript({
           target: { tabId: tab.id },
           files: ['content_generic.js']
@@ -408,6 +411,11 @@ const TRACKING_PARAMS = [
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.url && (changeInfo.url.startsWith('http://') || changeInfo.url.startsWith('https://'))) {
+    // Whitelist Microsoft Teams, Office, Azure, and SSO authentication endpoints from URL rewriting
+    if (/teams\.(microsoft|live)\.com|login\.(microsoftonline|live)\.com|\.office\.(com|net|365\.com)|\.skype\.com|\.microsoft\.com|msauth\.net|msftauth\.net|\.azure\.com/i.test(changeInfo.url)) {
+      return;
+    }
+
     chrome.storage.local.get('settings', (data) => {
       const s = data?.settings;
       if (s?.enabled !== false && s?.cleanTrackingUrls !== false) {

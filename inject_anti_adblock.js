@@ -3,6 +3,12 @@
 (function () {
   'use strict';
 
+  // Whitelist Microsoft Teams, Office 365, and Azure/Microsoft SSO
+  const hostname = (window.location.hostname || '').toLowerCase();
+  if (/teams\.(microsoft|live)\.com|login\.(microsoftonline|live)\.com|\.office\.(com|net|365\.com)|\.skype\.com|\.sharepoint\.com|\.microsoft\.com|msauth\.net|msftauth\.net|\.azure\.com/i.test(hostname)) {
+    return;
+  }
+
   // 1. Defuse global ad-detection booleans
   try {
     window.canRunAds = true;

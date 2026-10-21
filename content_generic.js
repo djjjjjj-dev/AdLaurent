@@ -3,10 +3,15 @@
 (function () {
   'use strict';
 
-  // Do not duplicate efforts if specialized scripts handle YouTube/Twitch
   const hostname = window.location.hostname.toLowerCase();
   const isYouTube = hostname.includes('youtube.com');
   const isTwitch = hostname.includes('twitch.tv');
+
+  // Whitelist Microsoft Teams, Office 365, Azure, and Microsoft SSO
+  const isMicrosoftSuite = /teams\.(microsoft|live)\.com|login\.(microsoftonline|live)\.com|\.office\.(com|net|365\.com)|\.skype\.com|\.sharepoint\.com|\.microsoft\.com|msauth\.net|msftauth\.net|\.azure\.com/i.test(hostname);
+  if (isMicrosoftSuite) {
+    return;
+  }
 
   let isEnabled = true;
   let blockCookies = true;
@@ -297,10 +302,16 @@
         }
 
         const urlString = String(url || '').toLowerCase();
+
+        // Never intercept authentication, workspace, or common SSO popups
+        if (/teams\.(microsoft|live)\.com|login\.(microsoftonline|live)\.com|\.microsoft\.com|\.office\.com|\.google\.com|accounts\.google|\.github\.com|\.apple\.com/i.test(urlString)) {
+          return originalWindowOpen.apply(this, arguments);
+        }
+
         const suspiciousPatterns = [
           'popads', 'popcash', 'propellerads', 'adsterra', 'exoclick',
           'clickadu', 'trafficjunky', 'onclick', 'doubleclick', 'adservice',
-          'track', 'affiliate', 'cpm', 'bidvertiser'
+          'adtrack', 'clicktrack', 'affiliate', 'cpm', 'bidvertiser', 'popunder'
         ];
 
         const isSuspicious = suspiciousPatterns.some((pattern) => urlString.includes(pattern));
@@ -420,12 +431,12 @@
     const body = document.body;
     if (!body) return;
 
-    const bodyLocked = body.style.overflow === 'hidden' || docEl.style.overflow === 'hidden' ||
-                       body.style.position === 'fixed' || docEl.classList.contains('fc-ab-open') ||
-                       body.classList.contains('fc-ab-open') || body.classList.contains('modal-open') ||
-                       body.classList.contains('no-scroll');
+    const antiAdblockLock = docEl.classList.contains('fc-ab-open') ||
+                           body.classList.contains('fc-ab-open') ||
+                           docEl.classList.contains('sp-message-open') ||
+                           body.classList.contains('sp-message-open');
 
-    if (bodyLocked || forced) {
+    if (antiAdblockLock || forced) {
       body.style.setProperty('overflow', 'auto', 'important');
       docEl.style.setProperty('overflow', 'auto', 'important');
       body.style.setProperty('position', 'static', 'important');
