@@ -50,6 +50,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   const clearHistoryBtn = document.getElementById('clearHistoryBtn');
   const siteHistoryList = document.getElementById('siteHistoryList');
 
+  // Technical / Secret Dev Inspector Elements
+  const secretConsoleBtn = document.getElementById('secretConsoleBtn');
+  const secretDevTrigger = document.getElementById('secretDevTrigger');
+  const tabBtnDebug = document.getElementById('tabBtnDebug');
+  const tabDebug = document.getElementById('tabDebug');
+  const debugCloseBtn = document.getElementById('debugCloseBtn');
+  const debugLogCountBadge = document.getElementById('debugLogCountBadge');
+  const debugTotalCount = document.getElementById('debugTotalCount');
+  const debugLogList = document.getElementById('debugLogList');
+  const clearDebugLogBtn = document.getElementById('clearDebugLogBtn');
+  const debugFilterChips = document.querySelectorAll('.debug-filter-chips .filter-chip');
+
   // Action Buttons
   const resetBtn = document.getElementById('resetBtn');
   const reloadTabBtn = document.getElementById('reloadTabBtn');
@@ -57,26 +69,53 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Local state cache
   let currentActiveDomain = '';
   let cachedSiteStats = {};
+  let cachedAdLog = [];
   let currentSearchQuery = '';
+  let currentDebugFilter = 'all';
+  let isDevModeActive = false;
 
-  // Tab switching logic
+  // Tab switching logic (Supports Dashboard, History, and Technical Inspector)
   function switchTab(target) {
+    [tabBtnDashboard, tabBtnHistory, tabBtnDebug].forEach((btn) => btn?.classList.remove('active'));
+    [tabDashboard, tabHistory, tabDebug].forEach((tab) => tab?.classList.remove('active'));
+
     if (target === 'tabHistory') {
-      tabBtnDashboard.classList.remove('active');
       tabBtnHistory.classList.add('active');
-      tabDashboard.classList.remove('active');
       tabHistory.classList.add('active');
+      secretConsoleBtn?.classList.remove('active');
       if (historySearchInput) historySearchInput.focus();
+    } else if (target === 'tabDebug') {
+      if (tabBtnDebug) tabBtnDebug.style.display = 'flex';
+      tabBtnDebug?.classList.add('active');
+      tabDebug?.classList.add('active');
+      secretConsoleBtn?.classList.add('active');
     } else {
-      tabBtnHistory.classList.remove('active');
       tabBtnDashboard.classList.add('active');
-      tabHistory.classList.remove('active');
       tabDashboard.classList.add('active');
+      secretConsoleBtn?.classList.remove('active');
     }
   }
 
-  tabBtnDashboard.addEventListener('click', () => switchTab('tabDashboard'));
-  tabBtnHistory.addEventListener('click', () => switchTab('tabHistory'));
+  function toggleSecretDevMode() {
+    isDevModeActive = !isDevModeActive;
+    if (isDevModeActive) {
+      if (tabBtnDebug) tabBtnDebug.style.display = 'flex';
+      switchTab('tabDebug');
+      if (pulseRing) {
+        pulseRing.style.borderColor = '#38bdf8';
+        setTimeout(() => { if (pulseRing) pulseRing.style.borderColor = ''; }, 1200);
+      }
+    } else {
+      switchTab('tabDashboard');
+    }
+  }
+
+  secretDevTrigger?.addEventListener('click', toggleSecretDevMode);
+  secretConsoleBtn?.addEventListener('click', toggleSecretDevMode);
+  tabBtnDashboard?.addEventListener('click', () => { isDevModeActive = false; switchTab('tabDashboard'); });
+  tabBtnHistory?.addEventListener('click', () => { isDevModeActive = false; switchTab('tabHistory'); });
+  tabBtnDebug?.addEventListener('click', () => switchTab('tabDebug'));
+  debugCloseBtn?.addEventListener('click', () => { isDevModeActive = false; switchTab('tabDashboard'); });
 
   // Format seconds to human readable string
   function formatTimeSaved(totalSeconds) {
@@ -368,6 +407,110 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Technical Inspector Log Renderer
+  function renderDebugLog(adLog = [], filter = 'all') {
+    if (!debugLogList) return;
+    cachedAdLog = adLog || [];
+
+    const total = cachedAdLog.length;
+    if (debugTotalCount) debugTotalCount.textContent = total.toString();
+    if (debugLogCountBadge) debugLogCountBadge.textContent = total.toString();
+
+    let filtered = cachedAdLog;
+    if (filter === 'network') {
+      filtered = cachedAdLog.filter((item) => 
+        (item.method && item.method.toLowerCase().includes('declarativenetrequest')) || 
+        (item.category && item.category.toLowerCase().includes('réseau'))
+      );
+    } else if (filter === 'twitch') {
+      filtered = cachedAdLog.filter((item) => 
+        (item.domain && item.domain.includes('twitch')) || 
+        (item.category && item.category.toLowerCase().includes('twitch'))
+      );
+    } else if (filter === 'youtube') {
+      filtered = cachedAdLog.filter((item) => 
+        (item.domain && item.domain.includes('youtube')) || 
+        (item.category && item.category.toLowerCase().includes('youtube'))
+      );
+    } else if (filter === 'web') {
+      filtered = cachedAdLog.filter((item) => 
+        (!item.domain || (!item.domain.includes('twitch') && !item.domain.includes('youtube')))
+      );
+    }
+
+    if (filtered.length === 0) {
+      debugLogList.innerHTML = `
+        <div class="empty-debug-state">
+          <span class="empty-debug-icon">🔍</span>
+          <span class="empty-debug-title">Aucune publicité inspectée pour ce filtre</span>
+          <p class="empty-debug-sub">Naviguez sur un site ou lancez un stream pour observer en direct la cible et la méthode de neutralisation.</p>
+        </div>
+      `;
+      return;
+    }
+
+    debugLogList.innerHTML = '';
+    filtered.forEach((item) => {
+      const card = document.createElement('div');
+      card.className = 'debug-item-card';
+
+      const domain = escapeHtml(item.domain || 'web');
+      const timeStr = formatRelativeTime(item.timestamp);
+      const targetStr = escapeHtml(item.target || item.category || 'Élément publicitaire détecté');
+      const methodStr = escapeHtml(item.method || 'Filtre universel AdLaurent');
+      const categoryStr = escapeHtml(item.category || 'Publicité');
+
+      card.innerHTML = `
+        <div class="debug-item-header">
+          <div class="debug-item-domain-badge">
+            <span>🌐</span>
+            <span>${domain}</span>
+          </div>
+          <span class="debug-item-time">${timeStr}</span>
+        </div>
+
+        <div class="debug-item-row">
+          <span class="debug-row-label target-label">🎯 Quelle était la pub :</span>
+          <span class="debug-target-text">${targetStr}</span>
+        </div>
+
+        <div class="debug-item-row">
+          <span class="debug-row-label method-label">🛡️ Comment elle est bloquée :</span>
+          <span class="debug-method-text">${methodStr}</span>
+        </div>
+
+        <div class="debug-footer-row">
+          <span class="debug-category-tag">${categoryStr}</span>
+          <span>Quantité : +${item.count || 1}</span>
+        </div>
+      `;
+
+      debugLogList.appendChild(card);
+    });
+  }
+
+  // Filter chips listeners
+  debugFilterChips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      debugFilterChips.forEach((c) => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentDebugFilter = chip.getAttribute('data-filter') || 'all';
+      renderDebugLog(cachedAdLog, currentDebugFilter);
+    });
+  });
+
+  // Clear Technical Log Button
+  if (clearDebugLogBtn) {
+    clearDebugLogBtn.addEventListener('click', () => {
+      chrome.runtime.sendMessage({ type: 'CLEAR_HISTORY' }, (res) => {
+        if (res && res.stats) {
+          cachedAdLog = [];
+          renderDebugLog([], currentDebugFilter);
+        }
+      });
+    });
+  }
+
   // Render Full Extension State
   function render(state) {
     const { settings = {}, stats = {} } = state;
@@ -423,6 +566,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     renderWeeklyChart(stats.dailyHistory || {});
     renderHistoryList(stats.siteStats || {});
+    renderDebugLog(stats.adLog || [], currentDebugFilter);
   }
 
   // Toggle binding helper

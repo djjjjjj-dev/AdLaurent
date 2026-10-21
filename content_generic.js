@@ -175,12 +175,17 @@
 
   const JOINED_SELECTORS = AD_SELECTORS.join(', ');
 
+  let lastReportedTarget = '';
+  let lastReportedMethod = '';
+
   // Notify background about blocked ads with batching
-  function reportBlockedAds(count = 1, category = 'Bannières & Widgets') {
+  function reportBlockedAds(count = 1, category = 'Bannières & Widgets', target = '', method = '') {
     if (!isEnabled) return;
     pendingBlockCount += count;
     sessionBlockedCount += count;
     lastReportedType = category;
+    if (target) lastReportedTarget = target;
+    if (method) lastReportedMethod = method;
 
     if (reportTimeout) clearTimeout(reportTimeout);
     reportTimeout = setTimeout(() => {
@@ -194,8 +199,12 @@
           url: window.location.href,
           count: toSend,
           category: lastReportedType,
+          target: lastReportedTarget || `${toSend} élément(s) publicitaire(s) DOM`,
+          method: lastReportedMethod || 'Purge DOM physique (MutationObserver & Sélecteurs CSS)',
           secondsSaved: toSend * 3
         });
+        lastReportedTarget = '';
+        lastReportedMethod = '';
       }
     }, 350);
   }
@@ -247,7 +256,7 @@
       }
 
       if (found > 0) {
-        reportBlockedAds(found, 'Bannières & Widgets');
+        reportBlockedAds(found, 'Bannières & Widgets', `${found} conteneur(s) pub (.ads, iframe, dfp)`, 'Purge DOM physique (MutationObserver & Sélecteurs universels)');
       }
     } catch (_) {}
   }
@@ -298,7 +307,7 @@
 
         if (isSuspicious) {
           console.warn('[AdLaurent] Popup publicitaire neutralisé:', url);
-          reportBlockedAds(1, 'Fenêtre Pop-up');
+          reportBlockedAds(1, 'Fenêtre Pop-up', urlString, 'Protection Pop-up - window.open() intercepté et avorté');
           return null;
         }
 
@@ -535,7 +544,7 @@
     if (removed > 0) {
       if (document.body) document.body.style.setProperty('overflow', 'auto', 'important');
       if (document.documentElement) document.documentElement.style.setProperty('overflow', 'auto', 'important');
-      reportBlockedAds(removed, 'Bandeau Cookie');
+      reportBlockedAds(removed, 'Bandeau Cookie', 'Bannière de consentement RGPD (Didomi, OneTrust, Axeptio)', 'Defuser RGPD - Suppression overlay & Restauration scroll lock');
     }
   }
 
@@ -594,7 +603,7 @@
 
     if (removed > 0) {
       if (document.body) document.body.style.setProperty('overflow', 'auto', 'important');
-      reportBlockedAds(removed, 'Popup Newsletter');
+      reportBlockedAds(removed, 'Popup Newsletter', 'Modale de capture e-mail exit-intent', 'Defuser Newsletter - Élimination physique du popup fixe');
     }
   }
 
@@ -635,7 +644,7 @@
     });
 
     if (removed > 0) {
-      reportBlockedAds(removed, 'Vidéo Flottante');
+      reportBlockedAds(removed, 'Vidéo Flottante', 'Lecteur vidéo flottant autoplay', 'Anti-Sticky - Neutralisation conteneur PIP');
     }
   }
 

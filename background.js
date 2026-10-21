@@ -129,6 +129,8 @@ function reconcileStats(rawStats) {
         domain: defaultSite,
         category: stats.siteStats[defaultSite].lastCategory,
         count: diff,
+        target: defaultSite === 'twitch.tv' ? 'Flux vidéo publicitaire HLS' : defaultSite === 'youtube.com' ? 'Annonce vidéo / Overlay' : 'Bannières publicitaires Web',
+        method: defaultSite === 'twitch.tv' ? 'VAFT Webpack Hook (Segments M3U8 substitués)' : defaultSite === 'youtube.com' ? 'Interception Player (Avance 16x & Skip)' : 'Filtre Réseau DeclarativeNetRequest / CSS Purge',
         timestamp: Date.now()
       });
     }
@@ -200,7 +202,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       domain: domain,
       category: request.category || 'Bannières & Widgets',
       count: parseInt(request.count, 10) || 1,
-      secondsSaved: parseInt(request.secondsSaved, 10) || 3
+      secondsSaved: parseInt(request.secondsSaved, 10) || 3,
+      target: request.target,
+      method: request.method
     });
 
     sendResponse({ success: true });
@@ -274,7 +278,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 // Central ad-blocked handler
-async function handleAdBlocked({ platform, domain, category, count = 1, secondsSaved = 15 }) {
+async function handleAdBlocked({ platform, domain, category, count = 1, secondsSaved = 15, target, method }) {
   const { settings, stats } = await chrome.storage.local.get(['settings', 'stats']);
   if (settings && !settings.enabled) return;
   if (platform === 'youtube' && settings && !settings.youtubeEnabled) return;
@@ -321,14 +325,16 @@ async function handleAdBlocked({ platform, domain, category, count = 1, secondsS
   siteItem.lastCategory = category;
   siteItem.categories[category] = (siteItem.categories[category] || 0) + addCount;
 
-  // Chronological ad log (kept at 150 items max)
+  // Chronological ad log (kept at 150 items max) with technical details
   if (!Array.isArray(currentStats.adLog)) currentStats.adLog = [];
   currentStats.adLog.unshift({
     id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
     domain: safeDomain,
     category: category,
     count: addCount,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    target: target || (platform === 'twitch' ? 'Coupure pub flux vidéo Twitch' : platform === 'youtube' ? 'Annonce vidéo sponsorisée YouTube' : 'Bannière / Script publicitaire'),
+    method: method || (platform === 'twitch' ? 'VAFT Webpack Hook (Segments M3U8 substitués)' : platform === 'youtube' ? 'Interception Player (Avance 16x & Skip)' : 'Filtre Réseau DeclarativeNetRequest / CSS Purge')
   });
 
   if (currentStats.adLog.length > 150) {
@@ -386,7 +392,9 @@ if (chrome.declarativeNetRequest && chrome.declarativeNetRequest.onRuleMatchedDe
       domain,
       category: 'Réseau & Scripts Pub',
       count: 1,
-      secondsSaved: 3
+      secondsSaved: 3,
+      target: url,
+      method: `DeclarativeNetRequest (Règle #${info.rule.ruleId}) - Interception réseau avant téléchargement`
     });
   });
 }
@@ -406,14 +414,25 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
         try {
           const urlObj = new URL(changeInfo.url);
           let modified = false;
+          const removedParams = [];
           TRACKING_PARAMS.forEach((param) => {
             if (urlObj.searchParams.has(param)) {
               urlObj.searchParams.delete(param);
+              removedParams.push(param);
               modified = true;
             }
           });
           if (modified) {
             chrome.tabs.update(tabId, { url: urlObj.toString() }).catch(() => {});
+            handleAdBlocked({
+              platform: 'generic',
+              domain: cleanDomain(urlObj.hostname),
+              category: 'Pisteurs URL',
+              count: 1,
+              secondsSaved: 2,
+              target: 'Paramètres espions : ' + removedParams.join(', '),
+              method: 'Link Cleaner - Suppression des balises de tracking (utm, fbclid, gclid)'
+            });
           }
         } catch (_) {}
       }

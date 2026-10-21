@@ -45,7 +45,7 @@
     });
   }
 
-  function recordAdBlocked(count = 1, category = 'Coupure Twitch', seconds = 30) {
+  function recordAdBlocked(count = 1, category = 'Coupure Twitch', seconds = 30, target = '', method = '') {
     if (!isEnabled || !isExtensionValid()) return;
     safeSendMessage({
       type: 'AD_BLOCKED',
@@ -53,6 +53,8 @@
       domain: 'twitch.tv',
       category: category,
       count: count,
+      target: target || 'Flux vidéo commercial Twitch',
+      method: method || 'VAFT Webpack Hook (Segments M3U8 substitués)',
       secondsSaved: seconds
     });
   }
@@ -63,7 +65,7 @@
     if (now - lastVideoAdReportedTime < 25000) return;
     lastVideoAdReportedTime = now;
     const seconds = (event.detail && event.detail.seconds) || 30;
-    recordAdBlocked(1, 'Coupure Vidéo Twitch (Sans pub)', seconds);
+    recordAdBlocked(1, 'Coupure Vidéo Twitch (Sans pub)', seconds, 'Coupure pub flux vidéo (M3U8 Usher)', 'VAFT Engine - Suppression segments pub & maintien du live');
   });
 
   // Permanently remove all ad containers, banners, chat cards, and overlays from Twitch DOM
@@ -135,7 +137,7 @@
       const now = Date.now();
       if (now - lastBannerReportedTime > 15000) {
         lastBannerReportedTime = now;
-        recordAdBlocked(1, 'Bannières & Promos', 10);
+        recordAdBlocked(1, 'Bannières & Promos', 10, 'Bannière promotionnelle / Drop Apple TV chat', 'Purge DOM sélective');
       }
     }
   }

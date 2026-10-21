@@ -40,7 +40,7 @@
     });
   }
 
-  function recordAdBlocked(seconds = 15) {
+  function recordAdBlocked(seconds = 15, target = 'Annonce vidéo YouTube (Midroll / Preroll)', method = 'Interception Player (Avance 16x & Auto-skip)') {
     if (!isExtensionValid()) return;
     const now = Date.now();
     if (now - lastAdSkippedTime > 1200) {
@@ -50,6 +50,8 @@
         platform: 'youtube',
         domain: 'youtube.com',
         category: 'Vidéo YouTube',
+        target: target,
+        method: method,
         secondsSaved: seconds
       });
     }
@@ -177,7 +179,7 @@
     });
 
     if (removed) {
-      recordAdBlocked(5);
+      recordAdBlocked(5, 'Bannière sponsorisée / Masthead feed', 'Purge DOM sélecteur (ytd-ad-slot-renderer / rich-section)');
     }
   }
 

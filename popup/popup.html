@@ -12,7 +12,7 @@
   <div class="app-container">
     <!-- Header -->
     <header class="header">
-      <div class="brand">
+      <div class="brand" id="secretDevTrigger" title="AdLaurent - Cliquez pour le mode technique">
         <div class="logo-wrapper">
           <svg class="shield-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -27,14 +27,22 @@
           <p class="subtitle">par Djibr1l</p>
         </div>
       </div>
-      <div class="status-pill active" id="globalStatusPill">
-        <span class="status-dot"></span>
-        <span id="globalStatusText">ACTIF</span>
+      <div class="header-right">
+        <button class="secret-dev-btn" id="secretConsoleBtn" title="Inspecteur Technique">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+        </button>
+        <div class="status-pill active" id="globalStatusPill">
+          <span class="status-dot"></span>
+          <span id="globalStatusText">ACTIF</span>
+        </div>
       </div>
     </header>
 
     <!-- Navigation Tabs -->
-    <nav class="nav-tabs">
+    <nav class="nav-tabs" id="mainNavTabs">
       <button class="nav-tab-btn active" id="tabBtnDashboard" data-tab="tabDashboard">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -48,6 +56,14 @@
         </svg>
         <span>Historique</span>
         <span class="tab-badge" id="historySitesCountBadge">0</span>
+      </button>
+      <button class="nav-tab-btn dev-tab-btn" id="tabBtnDebug" data-tab="tabDebug" style="display: none;">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="16 18 22 12 16 6"></polyline>
+          <polyline points="8 6 2 12 8 18"></polyline>
+        </svg>
+        <span>Technique</span>
+        <span class="tab-badge dev-badge" id="debugLogCountBadge">0</span>
       </button>
     </nav>
 
@@ -293,6 +309,62 @@
 
       <!-- Scrollable Site List -->
       <section class="site-history-list" id="siteHistoryList">
+        <!-- Rendered dynamically by popup.js -->
+      </section>
+    </main>
+
+    <!-- TAB 3: TECHNICAL INSPECTOR (MODE TECHNIQUE / DEV) -->
+    <main class="tab-content" id="tabDebug">
+      <!-- Technical Inspector Header Card -->
+      <section class="debug-hero-card">
+        <div class="debug-hero-left">
+          <div class="debug-hero-icon">⚙️</div>
+          <div class="debug-hero-text">
+            <span class="debug-hero-title">Inspecteur de Blocage</span>
+            <span class="debug-hero-sub">Analyse technique des pubs neutralisées</span>
+          </div>
+        </div>
+        <button class="debug-close-btn" id="debugCloseBtn" title="Fermer l'inspecteur">✕</button>
+      </section>
+
+      <!-- Active Engines Status Pill Grid -->
+      <section class="engines-grid">
+        <div class="engine-pill" title="DeclarativeNetRequest MV3">
+          <span class="engine-dot active"></span>
+          <span class="engine-name">Réseau DNR</span>
+          <span class="engine-val">48 règles</span>
+        </div>
+        <div class="engine-pill" title="Interception Stream Webpack / M3U8">
+          <span class="engine-dot active"></span>
+          <span class="engine-name">Twitch VAFT</span>
+          <span class="engine-val">Hook</span>
+        </div>
+        <div class="engine-pill" title="Interception Payload & Skip 16x">
+          <span class="engine-dot active"></span>
+          <span class="engine-name">YouTube Player</span>
+          <span class="engine-val">0ms</span>
+        </div>
+        <div class="engine-pill" title="Purge DOM & MutationObserver">
+          <span class="engine-dot active"></span>
+          <span class="engine-name">Purge DOM</span>
+          <span class="engine-val">Auto</span>
+        </div>
+      </section>
+
+      <!-- Filter Bar -->
+      <section class="debug-filter-bar">
+        <div class="debug-filter-chips">
+          <button class="filter-chip active" data-filter="all">Tous (<span id="debugTotalCount">0</span>)</button>
+          <button class="filter-chip" data-filter="network">Réseau</button>
+          <button class="filter-chip" data-filter="twitch">Twitch</button>
+          <button class="filter-chip" data-filter="youtube">YouTube</button>
+          <button class="filter-chip" data-filter="web">Web & RGPD</button>
+        </div>
+        <button class="clear-debug-btn" id="clearDebugLogBtn" title="Vider le journal technique">Vider</button>
+      </section>
+
+      <!-- Scrollable Technical Log List -->
+      <section class="debug-log-list" id="debugLogList">
         <!-- Rendered dynamically by popup.js -->
       </section>
     </main>
