@@ -149,6 +149,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     return `${day}/${month} à ${hours}:${mins}`;
   }
 
+  // HTML escaping helper for safe text rendering
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   // Smooth counter animation
   function animateValue(element, start, end, duration = 350) {
     if (!element) return;
