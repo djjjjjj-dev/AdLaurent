@@ -7,7 +7,7 @@ Extension Chrome (Manifest V3) de blocage de publicités pour YouTube, Twitch et
 1. Rendez-vous sur `chrome://extensions` dans Google Chrome.
 2. Activez le **Mode développeur** (en haut à droite).
 3. Cliquez sur **Charger l'extension non empaquetée** (*Load unpacked*).
-4. Sélectionnez ce dossier : `C:\Users\Djibril\Desktop\adblock`
+4. Sélectionnez le dossier de l'extension
 
 ## 🛡️ Fonctionnalités
 
