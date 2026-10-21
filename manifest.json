@@ -76,7 +76,7 @@
       "js": ["inject_anti_adblock.js"],
       "world": "MAIN",
       "run_at": "document_start",
-      "all_frames": true
+      "all_frames": false
     },
     {
       "matches": ["<all_urls>"],
@@ -113,7 +113,7 @@
       "js": ["content_generic.js"],
       "css": ["styles/generic_adblock.css"],
       "run_at": "document_start",
-      "all_frames": true
+      "all_frames": false
     },
     {
       "matches": ["*://*.youtube.com/*"],

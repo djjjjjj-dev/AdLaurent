@@ -3,6 +3,9 @@
 (function () {
   'use strict';
 
+  if (window.__adlaurent_twitch_loaded) return;
+  window.__adlaurent_twitch_loaded = true;
+
   function isExtensionValid() {
     try {
       return typeof chrome !== 'undefined' && !!chrome.runtime && !!chrome.runtime.id;
@@ -175,33 +178,35 @@
     }
   }
 
-  // Initial and periodic sweeps
+  // Initial and periodic sweeps (idle-aware)
   purgeTwitchAdElements();
-
-  const purgeInterval = setInterval(() => {
-    if (!isExtensionValid()) {
-      clearInterval(purgeInterval);
-      return;
-    }
-    purgeTwitchAdElements();
-  }, 250);
 
   const claimInterval = setInterval(() => {
     if (!isExtensionValid()) {
       clearInterval(claimInterval);
       return;
     }
+    if (document.hidden) return;
     autoClaimChannelPoints();
-  }, 1200);
+  }, 3000);
 
-  // MutationObserver for instant DOM ad removal
+  // MutationObserver for instant DOM ad removal (throttled to 350ms)
+  let twitchThrottleTimer = null;
   const observer = new MutationObserver(() => {
     if (!isExtensionValid()) {
       observer.disconnect();
       return;
     }
-    purgeTwitchAdElements();
-    autoClaimChannelPoints();
+    if (document.hidden) return;
+
+    if (!twitchThrottleTimer) {
+      twitchThrottleTimer = setTimeout(() => {
+        twitchThrottleTimer = null;
+        if (document.hidden) return;
+        purgeTwitchAdElements();
+        autoClaimChannelPoints();
+      }, 350);
+    }
   });
 
   observer.observe(document.documentElement, {

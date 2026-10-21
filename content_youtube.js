@@ -1,6 +1,9 @@
 // Content Script for YouTube Ad Blocking & DOM Cleaner - AdLaurent
 
 (function () {
+  if (window.__adlaurent_yt_loaded) return;
+  window.__adlaurent_yt_loaded = true;
+
   let isEnabled = true;
   let lastAdSkippedTime = 0;
   let wasMutedByAdLaurent = false;
@@ -220,31 +223,34 @@
     }
   }
 
-  // Intervals: high speed video check and periodic feed cleaner
+  // Intervals: high speed video check and periodic feed cleaner (idle-aware)
   const hookInterval = setInterval(() => {
     if (!isExtensionValid()) {
       clearInterval(hookInterval);
       return;
     }
+    if (document.hidden) return;
     hookVideoEvents();
-  }, 500);
+  }, 1000);
 
   const adCheckInterval = setInterval(() => {
     if (!isExtensionValid()) {
       clearInterval(adCheckInterval);
       return;
     }
+    if (document.hidden) return;
     handleVideoAds();
-  }, 100);
+  }, 350);
 
   const cleanInterval = setInterval(() => {
     if (!isExtensionValid()) {
       clearInterval(cleanInterval);
       return;
     }
+    if (document.hidden) return;
     cleanHomepageAndFeeds();
     bypassAntiAdblock();
-  }, 400);
+  }, 1200);
 
   // Run initial cleaning once DOM is ready
   if (document.readyState === 'loading') {

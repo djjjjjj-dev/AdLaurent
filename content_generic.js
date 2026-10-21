@@ -3,6 +3,9 @@
 (function () {
   'use strict';
 
+  if (window.__adlaurent_generic_loaded) return;
+  window.__adlaurent_generic_loaded = true;
+
   const hostname = window.location.hostname.toLowerCase();
   const isYouTube = hostname.includes('youtube.com');
   const isTwitch = hostname.includes('twitch.tv');
@@ -350,28 +353,38 @@
     }
   }
 
-  // MutationObserver for continuous dynamic ad blocking
+  // MutationObserver for continuous dynamic ad blocking (debounced & idle-aware)
   function initObserver() {
     if (isYouTube || isTwitch) return;
 
     cleanAdElements(document);
     handleGenericVideoAds();
 
+    let cleanThrottleTimer = null;
+
     const observer = new MutationObserver((mutations) => {
       if (!isExtensionValid()) {
         observer.disconnect();
         return;
       }
-      let shouldClean = false;
+      if (document.hidden) return; // Do zero work when tab is in background
+
+      let hasAddedNodes = false;
       for (let i = 0; i < mutations.length; i++) {
         if (mutations[i].addedNodes && mutations[i].addedNodes.length > 0) {
-          shouldClean = true;
+          hasAddedNodes = true;
           break;
         }
       }
-      if (shouldClean) {
-        cleanAdElements(document);
-        handleGenericVideoAds();
+      if (!hasAddedNodes) return;
+
+      if (!cleanThrottleTimer) {
+        cleanThrottleTimer = setTimeout(() => {
+          cleanThrottleTimer = null;
+          if (document.hidden) return;
+          cleanAdElements(document);
+          handleGenericVideoAds();
+        }, 200);
       }
     });
 
@@ -707,15 +720,22 @@
     cleanAll();
   });
 
-  // Periodic safety sweep
+  // Periodic safety sweep (5000ms and only when tab is visible)
   const sweepInterval = setInterval(() => {
     if (!isExtensionValid()) {
       clearInterval(sweepInterval);
       return;
     }
+    if (document.hidden) return; // Zero work in background
     if (isEnabled && !isYouTube && !isTwitch) {
       cleanAll();
     }
-  }, 1200);
+  }, 5000);
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && isEnabled && !isYouTube && !isTwitch) {
+      cleanAll();
+    }
+  });
 
 })();
