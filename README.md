@@ -17,6 +17,12 @@ Extension Chrome (Manifest V3) de blocage de publicités pour YouTube, Twitch et
   - Blocage intelligent des fenêtres pop-up et pop-under intrusives.
   - Neutralisation des publicités vidéo HTML5 sur les sites de streaming et portails d'actualités.
   - **Anti-Adblock Killer automatique** : Déjoue les scripts de détection (BlockAdBlock, FuckAdBlock, Google Funding Choices, Admiral), supprime les modals d'avertissement, débloque le défilement (scroll lock) et retire les flous de paywall/articles.
+- **Navigation Propre (Options dédiées dans le popup)** :
+  - **Bandeaux cookies / RGPD** : Suppression et neutralisation des bannières de consentement (Didomi, OneTrust, Axeptio, Cookiebot, TarteAuCitron) sans blocage de scroll.
+  - **Popups newsletter & Exit-intent** : Élimination des fenêtres d'inscription intempestives et modales de capture d'e-mail.
+  - **Vidéos flottantes (Sticky Autoplay)** : Suppression des mini-lecteurs vidéo parasites en bas d'écran lors du défilement.
+  - **Nettoyage des liens (Link Cleaner)** : Suppression automatique des paramètres espions (`utm_source`, `fbclid`, `gclid`, etc.) dans la barre d'adresse et au clic sur les liens.
+  - Tous ces modules disposent d'un interrupteur individuel dans l'interface pour être activés ou désactivés à tout moment.
 - **Historique Détaillé des Sites** :
   - Onglet dédié avec compteur de pubs bloquées par site web.
   - Recherche instantanée par nom de domaine.

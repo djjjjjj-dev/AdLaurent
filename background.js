@@ -6,7 +6,11 @@ const DEFAULT_STATE = {
     genericEnabled: true,
     youtubeEnabled: true,
     twitchEnabled: true,
-    twitchAutoClaim: true
+    twitchAutoClaim: true,
+    blockCookies: true,
+    blockNewsletters: true,
+    blockStickyVideos: true,
+    cleanTrackingUrls: true
   },
   stats: {
     totalBlocked: 0,
@@ -386,3 +390,33 @@ if (chrome.declarativeNetRequest && chrome.declarativeNetRequest.onRuleMatchedDe
     });
   });
 }
+
+// Link Cleaner - Strip tracking parameters from navigated tab URLs
+const TRACKING_PARAMS = [
+  'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id',
+  'fbclid', 'gclid', 'gclsrc', 'dclid', 'msclkid', 'mc_eid', 'igshid', 'yclid',
+  '_hsenc', '_hsmi', 'mkt_tok', 'sc_src', 'sc_lid', 'rb_clickid'
+];
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (changeInfo.url && (changeInfo.url.startsWith('http://') || changeInfo.url.startsWith('https://'))) {
+    chrome.storage.local.get('settings', (data) => {
+      const s = data?.settings;
+      if (s?.enabled !== false && s?.cleanTrackingUrls !== false) {
+        try {
+          const urlObj = new URL(changeInfo.url);
+          let modified = false;
+          TRACKING_PARAMS.forEach((param) => {
+            if (urlObj.searchParams.has(param)) {
+              urlObj.searchParams.delete(param);
+              modified = true;
+            }
+          });
+          if (modified) {
+            chrome.tabs.update(tabId, { url: urlObj.toString() }).catch(() => {});
+          }
+        } catch (_) {}
+      }
+    });
+  }
+});
