@@ -188,3 +188,54 @@ body.adshield-clean [class*="_ad_"]:empty,
 body.adshield-clean [class*="dfp"]:empty {
   display: none !important;
 }
+
+/* Anti-Adblock Overlays, Modals & Backdrops Elimination */
+.fc-ab-root,
+.fc-dialog-container,
+.fc-ab-dialog,
+.sp-message-open,
+[class*="adblock-modal"],
+[id*="adblock-modal"],
+[class*="adblock-overlay"],
+[id*="adblock-overlay"],
+[class*="adblocker-modal"],
+[class*="adblock-backdrop"],
+[class*="anti-adblock"],
+[id*="anti-adblock"],
+[class*="admiral-root"],
+[id^="admiral-"],
+div[class*="fc-whitelist"],
+.adblock-warning,
+.adblock-detected {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  width: 0 !important;
+}
+
+/* Force Scroll Restoration on Anti-Adblock Lock */
+html.fc-ab-open,
+body.fc-ab-open,
+body.modal-open,
+body.no-scroll,
+body[class*="adblock"],
+html[class*="adblock"] {
+  overflow: auto !important;
+  position: static !important;
+}
+
+/* Unblur articles and re-enable selection/pointers */
+article,
+main,
+#content,
+.article-content,
+.story-content,
+[class*="article-body"],
+[class*="post-content"] {
+  filter: none !important;
+  -webkit-filter: none !important;
+  user-select: auto !important;
+  pointer-events: auto !important;
+}

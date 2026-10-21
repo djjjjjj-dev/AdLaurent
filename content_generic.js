@@ -333,25 +333,122 @@
     });
   }
 
+  // Anti-Adblock Killer & Scroll Lock Restorer
+  function killAntiAdblock() {
+    if (!isEnabled || isYouTube || isTwitch) return;
+
+    const antiAdblockSelectors = [
+      '.fc-ab-root',
+      '.fc-dialog-container',
+      '.fc-ab-dialog',
+      'div[class*="fc-whitelist"]',
+      '[class*="admiral-root"]',
+      'div[id^="admiral-"]',
+      '[class*="adblock-modal"]',
+      '[id*="adblock-modal"]',
+      '[class*="adblocker-modal"]',
+      '[class*="adblock-overlay"]',
+      '[id*="adblock-overlay"]',
+      '[class*="adblock-backdrop"]',
+      '[class*="anti-adblock"]',
+      '[id*="anti-adblock"]',
+      '.sp-message-open',
+      '.adblock-warning',
+      '.adblock-detected',
+      '.adblocker-overlay'
+    ];
+
+    let killed = 0;
+    antiAdblockSelectors.forEach((sel) => {
+      const els = document.querySelectorAll(sel);
+      els.forEach((el) => {
+        try {
+          el.remove();
+          killed++;
+        } catch (_) {
+          el.style.setProperty('display', 'none', 'important');
+        }
+      });
+    });
+
+    // Detect text-based anti-adblock modals with fixed/absolute positioning
+    const fixedOverlays = document.querySelectorAll('div[style*="fixed"], div[style*="absolute"]');
+    fixedOverlays.forEach((el) => {
+      if (el.dataset.adshieldChecked) return;
+      const txt = (el.innerText || '').toLowerCase();
+      if ((txt.includes('bloqueur') || txt.includes('adblock') || txt.includes('ad blocker')) &&
+          (txt.includes('désactiver') || txt.includes('disable') || txt.includes('whitelist') || txt.includes('soutenir'))) {
+        el.dataset.adshieldChecked = 'true';
+        try {
+          el.remove();
+          killed++;
+        } catch (_) {}
+      }
+    });
+
+    restoreScrollAndUnblur(killed > 0);
+
+    if (killed > 0) {
+      reportBlockedAds(killed, 'Anti-Adblock Déjoué');
+    }
+  }
+
+  // Restore Scroll Lock & Remove Paywall/Anti-adblock blur
+  function restoreScrollAndUnblur(forced = false) {
+    const docEl = document.documentElement;
+    const body = document.body;
+    if (!body) return;
+
+    const bodyLocked = body.style.overflow === 'hidden' || docEl.style.overflow === 'hidden' ||
+                       body.style.position === 'fixed' || docEl.classList.contains('fc-ab-open') ||
+                       body.classList.contains('fc-ab-open') || body.classList.contains('modal-open') ||
+                       body.classList.contains('no-scroll');
+
+    if (bodyLocked || forced) {
+      body.style.setProperty('overflow', 'auto', 'important');
+      docEl.style.setProperty('overflow', 'auto', 'important');
+      body.style.setProperty('position', 'static', 'important');
+
+      body.classList.remove('modal-open', 'fc-ab-open', 'no-scroll', 'sp-message-open');
+      docEl.classList.remove('fc-ab-open', 'modal-open', 'no-scroll');
+    }
+
+    // Unblur articles and re-enable user interaction
+    const blurredContainers = document.querySelectorAll('article, main, #content, .article-content, [class*="article-body"]');
+    blurredContainers.forEach((el) => {
+      const style = window.getComputedStyle(el);
+      if (style.filter && style.filter.includes('blur')) {
+        el.style.setProperty('filter', 'none', 'important');
+        el.style.setProperty('-webkit-filter', 'none', 'important');
+        el.style.setProperty('user-select', 'auto', 'important');
+        el.style.setProperty('pointer-events', 'auto', 'important');
+      }
+    });
+  }
+
   // Initialization sequence
   setupPopupProtection();
 
   // Run immediately on existing elements
   cleanAdElements(document);
+  killAntiAdblock();
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       initDoc();
       initObserver();
+      killAntiAdblock();
     });
   } else {
     initDoc();
     initObserver();
+    killAntiAdblock();
   }
 
   window.addEventListener('load', () => {
     cleanAdElements(document);
     handleGenericVideoAds();
+    killAntiAdblock();
   });
 
   // Periodic safety sweep
@@ -363,6 +460,7 @@
     if (isEnabled && !isYouTube && !isTwitch) {
       cleanAdElements(document);
       handleGenericVideoAds();
+      killAntiAdblock();
     }
   }, 1500);
 

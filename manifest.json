@@ -43,6 +43,13 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
+      "js": ["inject_anti_adblock.js"],
+      "world": "MAIN",
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": ["<all_urls>"],
       "js": ["content_generic.js"],
       "css": ["styles/generic_adblock.css"],
       "run_at": "document_start",

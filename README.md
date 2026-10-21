@@ -16,6 +16,7 @@ Extension Chrome (Manifest V3) de blocage de publicités pour YouTube, Twitch et
   - Nettoyage DOM dynamique en temps réel (bannières, encarts sponsorisés, iframes publicitaires, widgets de recommandation).
   - Blocage intelligent des fenêtres pop-up et pop-under intrusives.
   - Neutralisation des publicités vidéo HTML5 sur les sites de streaming et portails d'actualités.
+  - **Anti-Adblock Killer automatique** : Déjoue les scripts de détection (BlockAdBlock, FuckAdBlock, Google Funding Choices, Admiral), supprime les modals d'avertissement, débloque le défilement (scroll lock) et retire les flous de paywall/articles.
 - **Historique Détaillé des Sites** :
   - Onglet dédié avec compteur de pubs bloquées par site web.
   - Recherche instantanée par nom de domaine.
