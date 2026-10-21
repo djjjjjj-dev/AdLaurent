@@ -49,7 +49,7 @@
   }
 
   function recordAdBlocked(count = 1, category = 'Coupure Twitch', seconds = 30, target = '', method = '') {
-    if (!isEnabled || !isExtensionValid() || document.hidden) return;
+    if (!isEnabled || !isExtensionValid()) return;
     safeSendMessage({
       type: 'AD_BLOCKED',
       platform: 'twitch',
@@ -62,9 +62,8 @@
     });
   }
 
-  // Listen to in-page ad bypass events from inject_twitch.js (1 per ad break)
+  // Listen to in-page ad bypass events from inject_twitch.js (1 per ad break, works in background streams)
   window.addEventListener('adlaurent-twitch-ad-blocked', (event) => {
-    if (document.hidden) return;
     const now = Date.now();
     if (now - lastVideoAdReportedTime < 25000) return;
     lastVideoAdReportedTime = now;

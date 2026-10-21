@@ -45,10 +45,17 @@ function cleanDomain(input) {
   return str.replace(/^www\./, '');
 }
 
-// Inject content script ONLY into the active tab on install/update
+// Inject content script into the active tab, plus YouTube/Twitch background media tabs
 async function injectIntoExistingTabs() {
   try {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const activeTabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const mediaTabs = await chrome.tabs.query({ url: ['*://*.youtube.com/*', '*://*.twitch.tv/*'] });
+    const tabs = [...activeTabs];
+    for (const mt of mediaTabs) {
+      if (!tabs.some(t => t.id === mt.id)) {
+        tabs.push(mt);
+      }
+    }
     for (const tab of tabs) {
       if (!tab.id || !tab.url || tab.url.startsWith('chrome')) continue;
 
@@ -184,8 +191,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.type === 'AD_BLOCKED') {
-    // Only process ad block events from the active tab
-    if (sender && sender.tab && !sender.tab.active) {
+    const isMediaPlatform = request.platform === 'youtube' || request.platform === 'twitch';
+    // Filter background tabs on general web pages, but allow YouTube and Twitch (music / streams in background)
+    if (!isMediaPlatform && sender && sender.tab && !sender.tab.active) {
       sendResponse({ success: false, reason: 'ignored_background_tab' });
       return true;
     }
@@ -367,12 +375,13 @@ if (chrome.declarativeNetRequest && chrome.declarativeNetRequest.onRuleMatchedDe
     const url = info.request.url || '';
     let domain = '';
 
-    // 1. Get domain from active tab and ensure tab is active
+    // 1. Get domain from active tab and ensure tab is active (exempting YouTube and Twitch)
     if (typeof info.request.tabId === 'number' && info.request.tabId >= 0) {
       try {
         const tab = await chrome.tabs.get(info.request.tabId);
-        if (!tab || !tab.active) {
-          return; // Ignore network blocks on background tabs
+        const isMedia = tab && tab.url && (tab.url.includes('youtube.com') || tab.url.includes('twitch.tv'));
+        if (!tab || (!tab.active && !isMedia)) {
+          return; // Ignore network blocks on generic background tabs
         }
         if (tab.url) {
           domain = cleanDomain(tab.url);
