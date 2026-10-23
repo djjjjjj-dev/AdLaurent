@@ -124,9 +124,21 @@
             constructor(twitchBlobUrl, options) {
                 let isTwitchWorker = false;
                 try {
-                    isTwitchWorker = new URL(twitchBlobUrl).origin.endsWith('.twitch.tv');
+                    isTwitchWorker = typeof twitchBlobUrl === 'string' && (
+                        twitchBlobUrl.startsWith('blob:') ||
+                        new URL(twitchBlobUrl, window.location.href).origin.endsWith('.twitch.tv')
+                    );
                 } catch {}
                 if (!isTwitchWorker) {
+                    super(twitchBlobUrl, options);
+                    return;
+                }
+                let workerString = '';
+                try {
+                    workerString = getWasmWorkerJs(twitchBlobUrl);
+                } catch (_) {}
+                // Only wrap wasm/video player workers, never chat or telemetry workers
+                if (!workerString || (!workerString.includes('wasm') && !workerString.includes('Module') && !workerString.includes('video') && !workerString.includes('hls'))) {
                     super(twitchBlobUrl, options);
                     return;
                 }
@@ -933,56 +945,64 @@
         const realFetch = window.fetch;
         window.realFetch = realFetch;
         window.fetch = function(url, init, ...args) {
-            if (typeof url === 'string') {
-                if (url.includes('gql')) {
-                    let deviceId = init.headers['X-Device-Id'];
-                    if (typeof deviceId !== 'string') {
-                        deviceId = init.headers['Device-ID'];
-                    }
+            try {
+                if (typeof url === 'string' && url.includes('gql') && init) {
+                    const getHeader = (name) => {
+                        if (!init.headers) return null;
+                        if (typeof init.headers.get === 'function') {
+                            return init.headers.get(name);
+                        }
+                        if (typeof init.headers === 'object') {
+                            return init.headers[name] || init.headers[name.toLowerCase()];
+                        }
+                        return null;
+                    };
+
+                    let deviceId = getHeader('X-Device-Id') || getHeader('Device-ID');
                     if (typeof deviceId === 'string' && GQLDeviceID != deviceId) {
                         GQLDeviceID = deviceId;
                         postTwitchWorkerMessage('UpdateDeviceId', GQLDeviceID);
                     }
-                    if (typeof init.headers['Client-Version'] === 'string' && init.headers['Client-Version'] !== ClientVersion) {
-                        postTwitchWorkerMessage('UpdateClientVersion', ClientVersion = init.headers['Client-Version']);
+                    const clientVer = getHeader('Client-Version');
+                    if (typeof clientVer === 'string' && clientVer !== ClientVersion) {
+                        postTwitchWorkerMessage('UpdateClientVersion', ClientVersion = clientVer);
                     }
-                    if (typeof init.headers['Client-Session-Id'] === 'string' && init.headers['Client-Session-Id'] !== ClientSession) {
-                        postTwitchWorkerMessage('UpdateClientSession', ClientSession = init.headers['Client-Session-Id']);
+                    const clientSess = getHeader('Client-Session-Id');
+                    if (typeof clientSess === 'string' && clientSess !== ClientSession) {
+                        postTwitchWorkerMessage('UpdateClientSession', ClientSession = clientSess);
                     }
-                    if (typeof init.headers['Client-Integrity'] === 'string' && init.headers['Client-Integrity'] !== ClientIntegrityHeader) {
-                        postTwitchWorkerMessage('UpdateClientIntegrityHeader', ClientIntegrityHeader = init.headers['Client-Integrity']);
+                    const clientInteg = getHeader('Client-Integrity');
+                    if (typeof clientInteg === 'string' && clientInteg !== ClientIntegrityHeader) {
+                        postTwitchWorkerMessage('UpdateClientIntegrityHeader', ClientIntegrityHeader = clientInteg);
                     }
-                    if (typeof init.headers['Authorization'] === 'string' && init.headers['Authorization'] !== AuthorizationHeader) {
-                        postTwitchWorkerMessage('UpdateAuthorizationHeader', AuthorizationHeader = init.headers['Authorization']);
+                    const authHdr = getHeader('Authorization');
+                    if (typeof authHdr === 'string' && authHdr !== AuthorizationHeader) {
+                        postTwitchWorkerMessage('UpdateAuthorizationHeader', AuthorizationHeader = authHdr);
                     }
-                    // Get rid of mini player above chat - TODO: Reject this locally instead of having server reject it
-                    if (init && typeof init.body === 'string' && init.body.includes('PlaybackAccessToken') && init.body.includes('picture-by-picture')) {
-                        init.body = '';
-                    }
+
                     if (ForceAccessTokenPlayerType && typeof init.body === 'string' && init.body.includes('PlaybackAccessToken')) {
-                        let replacedPlayerType = '';
-                        const newBody = JSON.parse(init.body);
-                        if (Array.isArray(newBody)) {
-                            for (let i = 0; i < newBody.length; i++) {
-                                if (newBody[i]?.variables?.playerType && newBody[i]?.variables?.playerType !== ForceAccessTokenPlayerType) {
-                                    replacedPlayerType = newBody[i].variables.playerType;
-                                    newBody[i].variables.playerType = ForceAccessTokenPlayerType;
+                        try {
+                            const newBody = JSON.parse(init.body);
+                            let replacedPlayerType = '';
+                            if (Array.isArray(newBody)) {
+                                for (let i = 0; i < newBody.length; i++) {
+                                    if (newBody[i]?.variables?.playerType && newBody[i]?.variables?.playerType !== ForceAccessTokenPlayerType) {
+                                        replacedPlayerType = newBody[i].variables.playerType;
+                                        newBody[i].variables.playerType = ForceAccessTokenPlayerType;
+                                    }
                                 }
-                            }
-                        } else {
-                            if (newBody?.variables?.playerType && newBody?.variables?.playerType !== ForceAccessTokenPlayerType) {
+                            } else if (newBody?.variables?.playerType && newBody?.variables?.playerType !== ForceAccessTokenPlayerType) {
                                 replacedPlayerType = newBody.variables.playerType;
                                 newBody.variables.playerType = ForceAccessTokenPlayerType;
                             }
-                        }
-                        if (replacedPlayerType) {
-                            console.log(`Replaced '${replacedPlayerType}' player type with '${ForceAccessTokenPlayerType}' player type`);
-                            init.body = JSON.stringify(newBody);
-                        }
+                            if (replacedPlayerType) {
+                                init.body = JSON.stringify(newBody);
+                            }
+                        } catch (_) {}
                     }
                 }
-            }
-            return realFetch.apply(this, arguments);
+            } catch (_) {}
+            return realFetch.apply(this, [url, init, ...args]);
         };
     }
     function onContentLoaded() {
@@ -1104,45 +1124,6 @@
         }
         postTwitchWorkerMessage('SimulateAds', depth);
     };
-    function purgeTwitchAdElements() {
-        const selectors = [
-            '.community-highlight',
-            '[class*="community-highlight"]',
-            '.disclosure-card',
-            '.stream-display-ad__wrapper',
-            '.stream-display-ad__container',
-            '.chat-banner',
-            '[data-a-target="chat-ad"]',
-            '[data-test-selector="chat-ad"]',
-            '[data-test-selector*="ad-banner"]',
-            '[data-test-selector="drops-claim-banner"]',
-            '.channel-page-carousel-ad',
-            '.whisper-thread--ad',
-            '.top-nav__ad-container',
-            '.tw-ad-slot',
-            '.ad-slot',
-            '[data-a-target="video-ad-label"]',
-            '[data-a-target="video-ad-countdown"]',
-            '[data-test-selector="ad-banner-default-text"]',
-            '.video-player__ad-overlay',
-            '.player-ad-overlay'
-        ];
-        for (let i = 0; i < selectors.length; i++) {
-            const els = document.querySelectorAll(selectors[i]);
-            for (let j = 0; j < els.length; j++) {
-                try { els[j].remove(); } catch (_) {}
-            }
-        }
-        // Remove any Apple TV / Drop cards
-        const chatCards = document.querySelectorAll('.stream-chat div, .chat-room div');
-        for (let i = 0; i < chatCards.length; i++) {
-            const txt = chatCards[i].textContent || '';
-            if (txt.includes('Drop Apple') || (txt.includes('Abonnemen') && txt.includes('tv'))) {
-                const card = chatCards[i].closest('.community-highlight') || chatCards[i].closest('[class*="Layout-sc-"]') || chatCards[i];
-                try { card.remove(); } catch (_) {}
-            }
-        }
-    }
-    setInterval(purgeTwitchAdElements, 250);
+
 })();
 

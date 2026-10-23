@@ -6,11 +6,7 @@ const DEFAULT_STATE = {
     genericEnabled: true,
     youtubeEnabled: true,
     twitchEnabled: true,
-    twitchAutoClaim: true,
-    blockCookies: true,
-    blockNewsletters: true,
-    blockStickyVideos: true,
-    cleanTrackingUrls: true
+    twitchAutoClaim: true
   },
   stats: {
     totalBlocked: 0,

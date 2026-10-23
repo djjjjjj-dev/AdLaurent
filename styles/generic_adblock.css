@@ -218,12 +218,10 @@ div[class*="fc-whitelist"],
 /* Force Scroll Restoration on Anti-Adblock Lock */
 html.fc-ab-open,
 body.fc-ab-open,
-body.modal-open,
-body.no-scroll,
+body.sp-message-open,
 body[class*="adblock"],
 html[class*="adblock"] {
   overflow: auto !important;
-  position: static !important;
 }
 
 /* Unblur articles and re-enable selection/pointers */
@@ -240,83 +238,3 @@ main,
   pointer-events: auto !important;
 }
 
-/* Cookie & GDPR Consent Banners Elimination */
-#didomi-host,
-.didomi-popup-container,
-[id*="didomi-notice"],
-#onetrust-consent-sdk,
-#onetrust-banner-sdk,
-.onetrust-pc-dark-filter,
-#CybotCookiebotDialog,
-#CybotCookiebotDialogBodyUnderlay,
-[id*="axeptio"],
-[class*="axeptio"],
-#tarteaucitronRoot,
-#tarteaucitronAlertBig,
-#tarteaucitronBack,
-.qc-cmp2-container,
-.qc-cmp-cleanslate,
-.trustarc-banner-container,
-#truste-consent-track,
-[id*="cookie-banner"],
-[class*="cookie-banner"],
-[id*="cookie-consent"],
-[class*="cookie-consent"],
-[id*="cookie-notice"],
-[class*="cookie-notice"],
-[class*="gdpr-banner"],
-[class*="consent-banner"],
-[id*="consent-banner"],
-[class*="cookie-law"],
-#cookie-law-info-bar {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  height: 0 !important;
-  width: 0 !important;
-}
-
-/* Newsletter & Exit-Intent Popups Elimination */
-[class*="newsletter-popup"],
-[id*="newsletter-popup"],
-[class*="newsletter-modal"],
-[id*="newsletter-modal"],
-[class*="mailchimp-popup"],
-[class*="exit-popup"],
-[class*="exit-intent"],
-[class*="sub-popup"],
-[id*="sub-popup"],
-[class*="optin-modal"],
-[class*="optin-popup"],
-.om-holder,
-[id*="om-"],
-.sumo-popup,
-[class*="pum-container"],
-[class*="spu-container"],
-[class*="privy-popup"],
-[class*="sleeknote"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-/* Floating Autoplay & Sticky Mini-Videos */
-[class*="sticky-player"],
-[class*="pip-player"],
-[class*="float-player"],
-[class*="floating-player"],
-[id*="floating-video"],
-[class*="docked-video"],
-.video-sticky,
-.jw-flag-floating,
-.vjs-floating-player,
-[class*="sticky-video"],
-[id*="sticky-video"],
-[class*="sticky_player"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}

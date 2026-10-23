@@ -1,17 +1,14 @@
 /* Twitch Ad-Blocking & Cleaner Stylesheet */
 
-/* Chat ad banners, sponsored disclosure cards, community highlights (Apple TV drop, etc.) */
-.community-highlight,
-[class*="community-highlight"],
-.community-highlight-wrapper,
-[data-test-selector*="community-highlight"],
+/* Chat ad banners, sponsored disclosure cards, sponsored Apple TV drops */
+.community-highlight:has(a[href*="apple.com"]),
+.community-highlight-wrapper:has(a[href*="apple.com"]),
 .disclosure-card,
 .stream-display-ad__wrapper,
 .stream-display-ad__container,
 .chat-banner,
 [data-a-target="chat-ad"],
 [data-test-selector="chat-ad"],
-[data-test-selector*="ad-banner"],
 [data-test-selector="drops-claim-banner"],
 .channel-page-carousel-ad,
 .whisper-thread--ad,

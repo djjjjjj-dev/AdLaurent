@@ -16,14 +16,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Controls Elements
   const masterToggle = document.getElementById('masterToggle');
-  const genericToggle = document.getElementById('genericToggle');
-  const ytToggle = document.getElementById('ytToggle');
-  const twitchToggle = document.getElementById('twitchToggle');
-  const twitchClaimToggle = document.getElementById('twitchClaimToggle');
-  const cookieToggle = document.getElementById('cookieToggle');
-  const newsletterToggle = document.getElementById('newsletterToggle');
-  const stickyVideoToggle = document.getElementById('stickyVideoToggle');
-  const trackingToggle = document.getElementById('trackingToggle');
 
   // Dashboard Stat Elements
   const totalBlockedCount = document.getElementById('totalBlockedCount');
@@ -527,14 +519,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { settings = {}, stats = {} } = state;
 
     masterToggle.checked = settings.enabled !== false;
-    if (genericToggle) genericToggle.checked = settings.genericEnabled !== false;
-    ytToggle.checked = settings.youtubeEnabled !== false;
-    twitchToggle.checked = settings.twitchEnabled !== false;
-    twitchClaimToggle.checked = settings.twitchAutoClaim !== false;
-    if (cookieToggle) cookieToggle.checked = settings.blockCookies !== false;
-    if (newsletterToggle) newsletterToggle.checked = settings.blockNewsletters !== false;
-    if (stickyVideoToggle) stickyVideoToggle.checked = settings.blockStickyVideos !== false;
-    if (trackingToggle) trackingToggle.checked = settings.cleanTrackingUrls !== false;
 
     updateStatusUI(settings.enabled !== false);
 
@@ -598,14 +582,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   bindToggle(masterToggle, 'enabled');
-  bindToggle(genericToggle, 'genericEnabled');
-  bindToggle(ytToggle, 'youtubeEnabled');
-  bindToggle(twitchToggle, 'twitchEnabled');
-  bindToggle(twitchClaimToggle, 'twitchAutoClaim');
-  if (cookieToggle) bindToggle(cookieToggle, 'blockCookies');
-  if (newsletterToggle) bindToggle(newsletterToggle, 'blockNewsletters');
-  if (stickyVideoToggle) bindToggle(stickyVideoToggle, 'blockStickyVideos');
-  if (trackingToggle) bindToggle(trackingToggle, 'cleanTrackingUrls');
 
   // Reset Stats Button
   resetBtn.addEventListener('click', () => {

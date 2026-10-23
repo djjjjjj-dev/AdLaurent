@@ -33,10 +33,6 @@
   }
 
   let isEnabled = true;
-  let blockCookies = true;
-  let blockNewsletters = true;
-  let blockStickyVideos = true;
-  let cleanTrackingUrls = true;
   let sessionBlockedCount = 0;
   let reportTimeout = null;
   let pendingBlockCount = 0;
@@ -64,10 +60,6 @@
     chrome.storage.local.get('settings', (data) => {
       if (data && data.settings) {
         isEnabled = data.settings.enabled !== false && data.settings.genericEnabled !== false;
-        blockCookies = data.settings.blockCookies !== false;
-        blockNewsletters = data.settings.blockNewsletters !== false;
-        blockStickyVideos = data.settings.blockStickyVideos !== false;
-        cleanTrackingUrls = data.settings.cleanTrackingUrls !== false;
       }
     });
 
@@ -76,10 +68,6 @@
       if (areaName === 'local' && changes.settings) {
         const s = changes.settings.newValue;
         isEnabled = s.enabled !== false && s.genericEnabled !== false;
-        blockCookies = s.blockCookies !== false;
-        blockNewsletters = s.blockNewsletters !== false;
-        blockStickyVideos = s.blockStickyVideos !== false;
-        cleanTrackingUrls = s.cleanTrackingUrls !== false;
       }
     });
   }
@@ -313,42 +301,7 @@
     });
   }
 
-  // Intelligent Anti-Popup & Popunder Blocker
-  function setupPopupProtection() {
-    if (isYouTube || isTwitch) return;
 
-    try {
-      const originalWindowOpen = window.open;
-      window.open = function (url, target, features) {
-        if (!isEnabled) {
-          return originalWindowOpen.apply(this, arguments);
-        }
-
-        const urlString = String(url || '').toLowerCase();
-
-        // Never intercept authentication, workspace, or common SSO popups
-        if (/cloud\.microsoft|teams\.|login\.|microsoft\.|office\.|google\.|accounts\.google|github\.|apple\./i.test(urlString)) {
-          return originalWindowOpen.apply(this, arguments);
-        }
-
-        const suspiciousPatterns = [
-          'popads', 'popcash', 'propellerads', 'adsterra', 'exoclick',
-          'clickadu', 'trafficjunky', 'onclick', 'doubleclick', 'adservice',
-          'adtrack', 'clicktrack', 'affiliate', 'cpm', 'bidvertiser', 'popunder'
-        ];
-
-        const isSuspicious = suspiciousPatterns.some((pattern) => urlString.includes(pattern));
-
-        if (isSuspicious) {
-          console.warn('[AdLaurent] Popup publicitaire neutralisé:', url);
-          reportBlockedAds(1, 'Fenêtre Pop-up', urlString, 'Protection Pop-up - window.open() intercepté et avorté');
-          return null;
-        }
-
-        return originalWindowOpen.apply(this, arguments);
-      };
-    } catch (_) {}
-  }
 
   // Document class indicator
   function initDoc() {
@@ -472,10 +425,9 @@
     if (antiAdblockLock || forced) {
       body.style.setProperty('overflow', 'auto', 'important');
       docEl.style.setProperty('overflow', 'auto', 'important');
-      body.style.setProperty('position', 'static', 'important');
 
-      body.classList.remove('modal-open', 'fc-ab-open', 'no-scroll', 'sp-message-open');
-      docEl.classList.remove('fc-ab-open', 'modal-open', 'no-scroll');
+      body.classList.remove('fc-ab-open', 'sp-message-open');
+      docEl.classList.remove('fc-ab-open', 'sp-message-open');
     }
 
     // Unblur articles and re-enable user interaction
@@ -491,220 +443,12 @@
     });
   }
 
-  // Link Cleaner - Tracking parameters
-  const TRACKING_PARAMS = [
-    'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id',
-    'fbclid', 'gclid', 'gclsrc', 'dclid', 'msclkid', 'mc_eid', 'igshid', 'yclid',
-    '_hsenc', '_hsmi', 'mkt_tok', 'sc_src', 'sc_lid', 'rb_clickid'
-  ];
-
-  function cleanCurrentUrlTracking() {
-    if (!isEnabled || !cleanTrackingUrls) return;
-    try {
-      const url = new URL(window.location.href);
-      let removed = false;
-      TRACKING_PARAMS.forEach((param) => {
-        if (url.searchParams.has(param)) {
-          url.searchParams.delete(param);
-          removed = true;
-        }
-      });
-      if (removed) {
-        window.history.replaceState(null, document.title, url.toString());
-        reportBlockedAds(1, 'Lien Espion');
-      }
-    } catch (_) {}
-  }
-
-  function cleanClickedLink(e) {
-    if (!isEnabled || !cleanTrackingUrls) return;
-    const a = e.target.closest ? e.target.closest('a') : null;
-    if (a && a.href && (a.href.startsWith('http://') || a.href.startsWith('https://'))) {
-      try {
-        const url = new URL(a.href);
-        let removed = false;
-        TRACKING_PARAMS.forEach((param) => {
-          if (url.searchParams.has(param)) {
-            url.searchParams.delete(param);
-            removed = true;
-          }
-        });
-        if (removed) {
-          a.href = url.toString();
-        }
-      } catch (_) {}
-    }
-  }
-  document.addEventListener('click', cleanClickedLink, true);
-
-  // Cookie Consent Banners Killer
-  const COOKIE_SELECTORS = [
-    '#didomi-host',
-    '.didomi-popup-container',
-    '[id*="didomi-notice"]',
-    '#onetrust-consent-sdk',
-    '#onetrust-banner-sdk',
-    '.onetrust-pc-dark-filter',
-    '#CybotCookiebotDialog',
-    '#CybotCookiebotDialogBodyUnderlay',
-    '[id*="axeptio"]',
-    '[class*="axeptio"]',
-    '#tarteaucitronRoot',
-    '#tarteaucitronAlertBig',
-    '#tarteaucitronBack',
-    '.qc-cmp2-container',
-    '.qc-cmp-cleanslate',
-    '.trustarc-banner-container',
-    '#truste-consent-track',
-    '[id*="cookie-banner"]',
-    '[class*="cookie-banner"]',
-    '[id*="cookie-consent"]',
-    '[class*="cookie-consent"]',
-    '[id*="cookie-notice"]',
-    '[class*="cookie-notice"]',
-    '[class*="gdpr-banner"]',
-    '[class*="consent-banner"]',
-    '[id*="consent-banner"]',
-    '[class*="cookie-law"]',
-    '#cookie-law-info-bar'
-  ];
-
-  function cleanCookieBanners() {
-    if (!isEnabled || !blockCookies || isYouTube || isTwitch) return;
-
-    let removed = 0;
-    COOKIE_SELECTORS.forEach((sel) => {
-      const els = document.querySelectorAll(sel);
-      els.forEach((el) => {
-        try {
-          el.remove();
-          removed++;
-        } catch (_) {
-          el.style.setProperty('display', 'none', 'important');
-        }
-      });
-    });
-
-    if (removed > 0) {
-      if (document.body) document.body.style.setProperty('overflow', 'auto', 'important');
-      if (document.documentElement) document.documentElement.style.setProperty('overflow', 'auto', 'important');
-      reportBlockedAds(removed, 'Bandeau Cookie', 'Bannière de consentement RGPD (Didomi, OneTrust, Axeptio)', 'Defuser RGPD - Suppression overlay & Restauration scroll lock');
-    }
-  }
-
-  // Newsletter & Exit-Intent Popups Killer
-  const NEWSLETTER_SELECTORS = [
-    '[class*="newsletter-popup"]',
-    '[id*="newsletter-popup"]',
-    '[class*="newsletter-modal"]',
-    '[id*="newsletter-modal"]',
-    '[class*="mailchimp-popup"]',
-    '[class*="exit-popup"]',
-    '[class*="exit-intent"]',
-    '[class*="sub-popup"]',
-    '[id*="sub-popup"]',
-    '[class*="optin-modal"]',
-    '[class*="optin-popup"]',
-    '.om-holder',
-    '[id*="om-"]',
-    '.sumo-popup',
-    '[class*="pum-container"]',
-    '[class*="spu-container"]',
-    '[class*="privy-popup"]',
-    '[class*="sleeknote"]'
-  ];
-
-  function cleanNewsletterPopups() {
-    if (!isEnabled || !blockNewsletters || isYouTube || isTwitch) return;
-
-    let removed = 0;
-    NEWSLETTER_SELECTORS.forEach((sel) => {
-      const els = document.querySelectorAll(sel);
-      els.forEach((el) => {
-        try {
-          el.remove();
-          removed++;
-        } catch (_) {
-          el.style.setProperty('display', 'none', 'important');
-        }
-      });
-    });
-
-    // Detect exit-intent email subscription overlays with fixed position
-    const fixedOverlays = document.querySelectorAll('div[style*="fixed"]');
-    fixedOverlays.forEach((el) => {
-      if (el.dataset.adlaurentNewsletter) return;
-      const hasEmailInput = el.querySelector('input[type="email"], input[name*="email" i]');
-      const text = (el.innerText || '').toLowerCase();
-      if (hasEmailInput && (text.includes('newsletter') || text.includes('abonnez') || text.includes('inscrivez') || text.includes('subscribe'))) {
-        el.dataset.adlaurentNewsletter = 'true';
-        try {
-          el.remove();
-          removed++;
-        } catch (_) {}
-      }
-    });
-
-    if (removed > 0) {
-      if (document.body) document.body.style.setProperty('overflow', 'auto', 'important');
-      reportBlockedAds(removed, 'Popup Newsletter', 'Modale de capture e-mail exit-intent', 'Defuser Newsletter - Élimination physique du popup fixe');
-    }
-  }
-
-  // Floating Sticky Autoplay Videos Killer
-  const STICKY_VIDEO_SELECTORS = [
-    '[class*="sticky-player"]',
-    '[class*="pip-player"]',
-    '[class*="float-player"]',
-    '[class*="floating-player"]',
-    '[id*="floating-video"]',
-    '[class*="docked-video"]',
-    '.video-sticky',
-    '.jw-flag-floating',
-    '.vjs-floating-player',
-    '[class*="sticky-video"]',
-    '[id*="sticky-video"]',
-    '[class*="sticky_player"]'
-  ];
-
-  function cleanStickyVideos() {
-    if (!isEnabled || !blockStickyVideos || isYouTube || isTwitch) return;
-
-    let removed = 0;
-    STICKY_VIDEO_SELECTORS.forEach((sel) => {
-      const els = document.querySelectorAll(sel);
-      els.forEach((el) => {
-        const v = el.querySelector('video');
-        if (v && typeof v.pause === 'function') {
-          try { v.pause(); } catch (_) {}
-        }
-        try {
-          el.remove();
-          removed++;
-        } catch (_) {
-          el.style.setProperty('display', 'none', 'important');
-        }
-      });
-    });
-
-    if (removed > 0) {
-      reportBlockedAds(removed, 'Vidéo Flottante', 'Lecteur vidéo flottant autoplay', 'Anti-Sticky - Neutralisation conteneur PIP');
-    }
-  }
-
   function cleanAll() {
     if (document.hidden) return; // Only execute when this tab is actively visible
     cleanAdElements(document);
     handleGenericVideoAds();
     killAntiAdblock();
-    cleanCookieBanners();
-    cleanNewsletterPopups();
-    cleanStickyVideos();
-    cleanCurrentUrlTracking();
   }
-
-  // Initialization sequence
-  setupPopupProtection();
 
   // Run immediately ONLY on active tab
   if (!document.hidden) {

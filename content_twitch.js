@@ -76,18 +76,14 @@
     if (!isEnabled || document.hidden) return;
 
     const selectors = [
-      // Chat ad cards, community highlights & sponsored drops (Apple TV, partner promotions, etc.)
-      '.community-highlight',
-      '[class*="community-highlight"]',
-      '.community-highlight-wrapper',
-      '[data-test-selector*="community-highlight"]',
+      // Chat ad cards & sponsored drops (Apple TV partner promotions, etc.)
+      '.community-highlight:has(a[href*="apple.com"])',
       '.disclosure-card',
       '.stream-display-ad__wrapper',
       '.stream-display-ad__container',
       '.chat-banner',
       '[data-a-target="chat-ad"]',
       '[data-test-selector="chat-ad"]',
-      '[data-test-selector*="ad-banner"]',
       '[data-test-selector="drops-claim-banner"]',
       '.stream-chat [class*="chat-ad"]',
       '.stream-chat [class*="ChatAd"]',
@@ -125,14 +121,16 @@
     }
 
     // Remove buttons or links for external ads ("En savoir plus", Apple links, etc.)
-    const adLinks = document.querySelectorAll('a[href*="apple.com"], a[href*="amazon.com/ad"], [data-a-target*="sponsor"]');
+    const adLinks = document.querySelectorAll('a[href*="apple.com"], a[href*="amazon.com/ad"]');
     adLinks.forEach((a) => {
       if (a.dataset.adlaurentRemoved) return;
       a.dataset.adlaurentRemoved = 'true';
       try {
-        const card = a.closest('.community-highlight') || a.closest('.disclosure-card') || a.closest('.chat-banner') || a;
-        card.remove();
-        removedCount++;
+        const card = a.closest('.community-highlight') || a.closest('.disclosure-card') || a.closest('.chat-banner');
+        if (card) {
+          card.remove();
+          removedCount++;
+        }
       } catch (_) {}
     });
 
@@ -145,36 +143,26 @@
     }
   }
 
-  // Auto-Claim Twitch Channel Points bonus chests
+  // Auto-Claim Twitch Channel Points bonus chests only (Never click points balance / powerups button)
   function autoClaimChannelPoints() {
     if (!isEnabled || !autoClaimEnabled) return;
     const now = Date.now();
     if (now - lastClaimedTime < 3000) return;
 
-    const claimSelectors = [
-      'button[aria-label="Claim Bonus"]',
-      'button[aria-label="Récupérer le bonus"]',
-      'button[aria-label*="Bonus"]',
-      'button[aria-label*="bonus"]',
-      '.community-points-summary button:not([disabled])',
-      '[data-test-selector="community-points-summary"] button',
-      '.claimable-bonus__icon'
-    ];
+    // Strictly target claimable bonus chests with the bonus icon or explicit claim label
+    const bonusBtn =
+      document.querySelector('button[aria-label="Claim Bonus"]') ||
+      document.querySelector('button[aria-label="Récupérer le bonus"]') ||
+      document.querySelector('button[data-test-selector="community-points-claim-bonus"]') ||
+      document.querySelector('.claimable-bonus__icon')?.closest('button');
 
-    for (const sel of claimSelectors) {
-      const target = document.querySelector(sel);
-      if (target) {
-        const btn = target.tagName === 'BUTTON' ? target : target.closest('button');
-        if (btn && typeof btn.click === 'function' && !btn.disabled) {
-          btn.click();
-          lastClaimedTime = now;
-          safeSendMessage({
-            type: 'POINTS_CLAIMED',
-            amount: 50
-          });
-          break;
-        }
-      }
+    if (bonusBtn && typeof bonusBtn.click === 'function' && !bonusBtn.disabled) {
+      bonusBtn.click();
+      lastClaimedTime = now;
+      safeSendMessage({
+        type: 'POINTS_CLAIMED',
+        amount: 50
+      });
     }
   }
 
